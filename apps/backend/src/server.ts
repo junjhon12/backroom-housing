@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db';
 import propertyRoutes from './routes/propertyRoutes';
+import authRoutes from './routes/authRoutes';
 
 // Enforce environment variables
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(cors({
 app.use(express.json());
 // Mount routers
 app.use('/api/properties', propertyRoutes);
+app.use('/api/auth', authRoutes);
 
 // Explicit interface definition for API response payloads
 interface HealthCheckResponse {

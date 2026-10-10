@@ -9,7 +9,7 @@ interface PropertyCardProps {
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-lg transition-shadow flex flex-col">
-      <div className="p-6 flex-grow">
+      <div className="p-6 grow">
         <div className="flex justify-between items-start mb-4">
           <h2 className="text-xl font-bold text-slate-800">{property.title}</h2>
         </div>

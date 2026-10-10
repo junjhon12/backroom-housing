@@ -1,4 +1,4 @@
-import { type Property, ApiResponse } from '../types/property';
+import { type Property, type ApiResponse } from '../types/property';
 
 export const fetchProperties = async (signal?: AbortSignal): Promise<Property[]> => {   
   const response = await fetch('/api/properties', { signal });
