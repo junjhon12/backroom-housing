@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
+import PropertyDetails from './pages/PropertyDetails'; 
 
 const App: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ const App: React.FC = () => {
         <main className="max-w-7xl mx-auto p-4 py-8">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/property/:id" element={<PropertyDetails />} />
           </Routes>
         </main>
       </div>

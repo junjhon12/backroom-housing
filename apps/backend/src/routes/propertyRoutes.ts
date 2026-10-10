@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getProperties, createProperty } from '../controllers/propertyController';
+import { getProperties, getPropertyById, createProperty } from '../controllers/propertyController';
 
 const router = Router();
 
@@ -7,5 +7,9 @@ const router = Router();
 router.route('/')
   .get(getProperties)
   .post(createProperty);
+
+// Route: /api/properties/:id
+router.route('/:id')
+  .get(getPropertyById);
 
 export default router;
