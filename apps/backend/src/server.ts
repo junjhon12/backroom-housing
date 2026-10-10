@@ -1,9 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { connectDB } from './config/db';
 
 // Enforce environment variables
 dotenv.config();
+
+// Connect to MongoDB
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,7 +36,7 @@ app.get('/api/health', (req: Request, res: Response<HealthCheckResponse>): void 
   });
 });
 
-// Global Error Handler (prevents server crashes from unhandled route errors)
+// Global Error Handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction): void => {
   console.error(`[Error]: ${err.message}`);
   res.status(500).json({ error: 'Internal Server Error' });

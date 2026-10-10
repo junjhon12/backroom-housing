@@ -3,5 +3,11 @@
   "private": true,
   "workspaces": [
     "apps/*"
-  ]
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @backroom-housing/backend\" \"npm run dev -w @backroom-housing/frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
 }
