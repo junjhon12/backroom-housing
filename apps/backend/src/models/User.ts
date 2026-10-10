@@ -25,7 +25,6 @@ const UserSchema: Schema = new Schema(
 
 // Pre-save hook to hash the password before saving to the database
 UserSchema.pre<IUser>('save', async function (next) {
-  // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) {
     return next();
   }
