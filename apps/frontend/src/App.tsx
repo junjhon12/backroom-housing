@@ -5,6 +5,8 @@ import PropertyDetails from './pages/PropertyDetails';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { useAuth } from './context/AuthContext';
+import CreateProperty from './pages/CreateProperty';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const Navigation = () => {
   const { user, logout } = useAuth();
@@ -58,6 +60,11 @@ const App: React.FC = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/property/:id" element={<PropertyDetails />} />
+            
+            {/* Protected Routes Wrapper */}
+            <Route element={<ProtectedRoute allowedRoles={['host', 'admin']} />}>
+              <Route path="/property/new" element={<CreateProperty />} />
+            </Route>
           </Routes>
         </main>
       </div>

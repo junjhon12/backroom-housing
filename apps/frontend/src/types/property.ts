@@ -17,3 +17,5 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
 }
+
+export type PropertyInput = Omit<Property, '_id' | 'createdAt' | 'updatedAt'>;
