@@ -44,12 +44,88 @@ export const getPropertyById = async (req: Request, res: Response<ApiResponse<IP
 
 export const createProperty = async (req: Request, res: Response<ApiResponse<IProperty>>): Promise<void> => {
   try {
-    const newProperty: IProperty = new Property(req.body);
+    if (!req.user) {
+      res.status(401).json({ success: false, error: 'User not authenticated' });
+      return;
+    }
+
+    // Implicitly tie the property to the verified token's user ID
+    const propertyData = {
+      ...req.body,
+      host: req.user._id
+    };
+
+    const newProperty: IProperty = new Property(propertyData);
     const savedProperty = await newProperty.save();
     
     res.status(201).json({ success: true, data: savedProperty });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to create property';
     res.status(400).json({ success: false, error: errorMessage });
+  }
+};
+
+export const updateProperty = async (req: Request, res: Response<ApiResponse<IProperty>>): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).json({ success: false, error: 'Invalid property ID' });
+      return;
+    }
+
+    const property = await Property.findById(id);
+
+    if (!property) {
+      res.status(404).json({ success: false, error: 'Property not found' });
+      return;
+    }
+
+    // Security: Verify the logged-in user owns this property (or is an admin)
+    if (property.host.toString() !== req.user?._id.toString() && req.user?.role !== 'admin') {
+      res.status(403).json({ success: false, error: 'Not authorized to update this listing' });
+      return;
+    }
+
+    const updatedProperty = await Property.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({ success: true, data: updatedProperty as IProperty });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update property';
+    res.status(400).json({ success: false, error: errorMessage });
+  }
+};
+
+export const deleteProperty = async (req: Request, res: Response<ApiResponse<null>>): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(400).json({ success: false, error: 'Invalid property ID' });
+      return;
+    }
+
+    const property = await Property.findById(id);
+
+    if (!property) {
+      res.status(404).json({ success: false, error: 'Property not found' });
+      return;
+    }
+
+    // Security: Verify ownership before deletion
+    if (property.host.toString() !== req.user?._id.toString() && req.user?.role !== 'admin') {
+      res.status(403).json({ success: false, error: 'Not authorized to delete this listing' });
+      return;
+    }
+
+    await property.deleteOne();
+
+    res.status(200).json({ success: true, data: null });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete property';
+    res.status(500).json({ success: false, error: errorMessage });
   }
 };
