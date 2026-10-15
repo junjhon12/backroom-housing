@@ -6,6 +6,7 @@ import { connectDB } from './config/db';
 import propertyRoutes from './routes/propertyRoutes';
 import authRoutes from './routes/authRoutes';
 import uploadRoutes from './routes/uploadRoutes';
+import userRoutes from './routes/userRoutes';
 
 // Enforce environment variables
 dotenv.config();
@@ -27,6 +28,7 @@ app.use(express.json());
 app.use('/api/properties', propertyRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/users', userRoutes);
 
 // Expose the 'uploads' directory to the public
 const dirname = path.resolve();
