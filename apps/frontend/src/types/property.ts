@@ -15,7 +15,7 @@ export interface Property {
 }
 
 // Explicit type for creation payloads, omitting auto-generated DB fields
-export type PropertyInput = Omit<Property, '_id' | 'createdAt' | 'updatedAt'>;
+export type PropertyInput = Omit<Property, '_id' | 'createdAt' | 'updatedAt' | 'host'>;
 
 export interface ApiResponse<T> {
   success: boolean;
