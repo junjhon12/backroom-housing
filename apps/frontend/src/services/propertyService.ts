@@ -14,7 +14,7 @@ const getAuthToken = (): string | null => {
   return null;
 };
 
-export const fetchProperties = async (signal?: AbortSignal): Promise<Property[]> => {   
+export const fetchProperties = async (signal?: AbortSignal): Promise<Property[]> => {
   const response = await fetch('/api/properties', { signal });
   
   if (!response.ok) {
@@ -30,7 +30,6 @@ export const fetchProperties = async (signal?: AbortSignal): Promise<Property[]>
   return result.data;
 };
 
-// RESTORED: Required for the Property Details page
 export const fetchPropertyById = async (id: string, signal?: AbortSignal): Promise<Property> => {
   const response = await fetch(`/api/properties/${id}`, { signal });
   
@@ -67,4 +66,31 @@ export const createPropertyListing = async (data: PropertyInput): Promise<Proper
   }
 
   return result.data as Property;
+};
+
+export const fetchMyProperties = async (signal?: AbortSignal): Promise<Property[]> => {
+  const token = getAuthToken();
+  const response = await fetch('/api/properties/me', {
+    signal,
+    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+  });
+  
+  const result: ApiResponse<Property[]> = await response.json();
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error || 'Failed to fetch your properties');
+  }
+  return result.data as Property[];
+};
+
+export const deletePropertyListing = async (id: string): Promise<void> => {
+  const token = getAuthToken();
+  const response = await fetch(`/api/properties/${id}`, {
+    method: 'DELETE',
+    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+  });
+  
+  const result: ApiResponse<null> = await response.json();
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || 'Failed to delete property');
+  }
 };
