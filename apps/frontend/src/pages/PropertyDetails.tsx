@@ -47,6 +47,17 @@ const PropertyDetails: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-8">
+      {/* NEW: Image Banner */}
+      {property.imageUrl && (
+        <div className="w-full h-96 bg-slate-100 border-b border-slate-200">
+          <img 
+            src={property.imageUrl} 
+            alt={property.title} 
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       <div className="p-8">
         <Link to="/" className="text-indigo-600 hover:underline mb-6 inline-block font-medium">&larr; Back to Listings</Link>
         
@@ -57,7 +68,7 @@ const PropertyDetails: React.FC = () => {
           </span>
         </div>
         
-        <p className="text-slate-600 text-lg mb-8 leading-relaxed">{property.description}</p>
+        <p className="text-slate-600 text-lg mb-8 leading-relaxed whitespace-pre-wrap">{property.description}</p>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
           <div>

@@ -13,30 +13,24 @@ export const getProperties = async (req: Request, res: Response<ApiResponse<IPro
   try {
     const { keyword, minPrice, maxPrice, bedrooms } = req.query;
     
-    // Base query: Only show available properties
-    // We use a Record<string, any> type to allow dynamic query building
     const dbQuery: Record<string, any> = { isAvailable: true };
 
-    // $regex provides partial, case-insensitive string matching
+    // Utilize the MongoDB Text Index instead of $regex for O(log N) performance
     if (keyword) {
-      dbQuery.$or = [
-        { title: { $regex: keyword as string, $options: 'i' } },
-        { location: { $regex: keyword as string, $options: 'i' } }
-      ];
+      dbQuery.$text = { $search: keyword as string };
     }
 
-    // Handle price ranges using MongoDB greater-than/less-than operators
     if (minPrice || maxPrice) {
       dbQuery.price = {};
       if (minPrice) dbQuery.price.$gte = Number(minPrice);
       if (maxPrice) dbQuery.price.$lte = Number(maxPrice);
     }
 
-    // Exact match or greater for bedrooms
     if (bedrooms) {
       dbQuery.bedrooms = { $gte: Number(bedrooms) };
     }
 
+    // If utilizing $text, MongoDB can also sort by textScore relevance, but we'll default to newest
     const properties = await Property.find(dbQuery).sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: properties });
   } catch (error) {

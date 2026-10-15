@@ -38,4 +38,10 @@ const PropertySchema: Schema = new Schema(
   }
 );
 
+// PERFORMANCE: Text index for highly optimized full-text keyword searches
+PropertySchema.index({ title: 'text', location: 'text', description: 'text' });
+
+// PERFORMANCE: Compound index for filtering active listings by price or bedrooms
+PropertySchema.index({ isAvailable: 1, price: 1, bedrooms: 1 });
+
 export default mongoose.model<IProperty>('Property', PropertySchema);
