@@ -8,6 +8,7 @@ import CreateProperty from './pages/CreateProperty';
 import Dashboard from './pages/Dashboard'; // Import Dashboard
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
+import EditProperty from './pages/EditProperty';
 
 const Navigation = () => {
   const { user, logout } = useAuth();
@@ -68,6 +69,7 @@ const App: React.FC = () => {
             <Route element={<ProtectedRoute allowedRoles={['host', 'admin']} />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/property/new" element={<CreateProperty />} />
+              <Route path="/property/edit/:id" element={<EditProperty />} />
             </Route>
           </Routes>
         </main>

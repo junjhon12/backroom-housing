@@ -68,6 +68,12 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
               <div className="flex gap-3">
+                <Link 
+                  to={`/property/edit/${property._id}`}
+                  className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+                >
+                  Edit
+                </Link>
                 <button 
                   onClick={() => handleDelete(property._id)}
                   className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"

@@ -94,3 +94,24 @@ export const deletePropertyListing = async (id: string): Promise<void> => {
     throw new Error(result.error || 'Failed to delete property');
   }
 };
+
+export const updatePropertyListing = async (id: string, data: PropertyInput): Promise<Property> => {
+  const token = getAuthToken();
+  
+  const response = await fetch(`/api/properties/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify(data),
+  });
+  
+  const result: ApiResponse<Property> = await response.json();
+  
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error || 'Failed to update property listing');
+  }
+
+  return result.data as Property;
+};
