@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { connectDB } from './config/db';
 import propertyRoutes from './routes/propertyRoutes';
 import authRoutes from './routes/authRoutes';
