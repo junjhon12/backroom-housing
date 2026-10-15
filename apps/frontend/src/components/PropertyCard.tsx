@@ -9,6 +9,17 @@ interface PropertyCardProps {
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-lg transition-shadow flex flex-col">
+      {/* New Image Container */}
+      <div className="h-48 w-full bg-slate-100 border-b border-slate-200 relative">
+        {property.imageUrl ? (
+          <img src={property.imageUrl} alt={property.title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full text-slate-400 font-medium">
+            No Image Provided
+          </div>
+        )}
+      </div>
+
       <div className="p-6 grow">
         <div className="flex justify-between items-start mb-4">
           <h2 className="text-xl font-bold text-slate-800">{property.title}</h2>

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PropertyInput } from '../types/property';
-import { createPropertyListing } from '../services/propertyService';
+import { createPropertyListing, uploadImage } from '../services/propertyService';
 
 const CreateProperty: React.FC = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null); 
 
   const [formData, setFormData] = useState<PropertyInput>({
     title: '',
@@ -27,13 +28,29 @@ const CreateProperty: React.FC = () => {
     }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const newProperty = await createPropertyListing(formData);
+      let finalImageUrl = undefined;
+      
+      // Pass 1: Upload the image if one was selected
+      if (imageFile) {
+        finalImageUrl = await uploadImage(imageFile);
+      }
+
+      // Pass 2: Submit the JSON payload with the new URL
+      const payload = { ...formData, ...(finalImageUrl && { imageUrl: finalImageUrl }) };
+      const newProperty = await createPropertyListing(payload);
+      
       navigate(`/property/${newProperty._id}`);
     } catch (err) {
       if (err instanceof Error) {
@@ -49,13 +66,20 @@ const CreateProperty: React.FC = () => {
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-slate-200 mt-8">
       <h1 className="text-3xl font-bold text-slate-900 mb-6">Post a New Listing</h1>
       
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* New Image Upload Field */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Property Image</label>
+          <input 
+            type="file" 
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full p-2 border border-slate-300 rounded-lg text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all"
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
           <input required type="text" name="title" value={formData.title} onChange={handleChange} 

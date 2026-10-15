@@ -116,3 +116,26 @@ export const updatePropertyListing = async (id: string, data: PropertyInput): Pr
 
   return result.data as Property;
 };
+
+export const uploadImage = async (file: File): Promise<string> => {
+  const token = getAuthToken();
+  const formData = new FormData();
+  formData.append('image', file); // 'image' matches the upload.single('image') backend config
+
+  const response = await fetch('/api/upload', {
+    method: 'POST',
+    headers: {
+      // CRITICAL: Do not set Content-Type here. The browser must set it with the boundary automatically.
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    },
+    body: formData,
+  });
+  
+  const result: ApiResponse<string> = await response.json();
+  
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error || 'Failed to upload image');
+  }
+
+  return result.data;
+};
