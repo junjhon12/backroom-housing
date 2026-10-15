@@ -4,9 +4,10 @@ import Home from './pages/Home';
 import PropertyDetails from './pages/PropertyDetails';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { useAuth } from './context/AuthContext';
 import CreateProperty from './pages/CreateProperty';
+import Dashboard from './pages/Dashboard'; // Import Dashboard
 import ProtectedRoute from './components/ProtectedRoute';
+import { useAuth } from './context/AuthContext';
 
 const Navigation = () => {
   const { user, logout } = useAuth();
@@ -22,16 +23,20 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link to="/" className="text-xl font-bold text-indigo-600 tracking-tight">Backroom</Link>
         <div className="space-x-4 flex items-center">
-          <Link to="/" className="text-slate-600 hover:text-indigo-600 transition-colors font-medium">Listings</Link>
+          <Link to="/" className="text-slate-600 hover:text-indigo-600 transition-colors font-medium">Explore</Link>
           
           {user ? (
             <>
-              <span className="text-sm text-slate-500 border-l border-slate-300 pl-4 hidden md:inline-block">
+              {/* Conditionally render Dashboard link for hosts/admins */}
+              {(user.role === 'host' || user.role === 'admin') && (
+                <Link to="/dashboard" className="text-slate-600 hover:text-indigo-600 transition-colors font-medium ml-4">Dashboard</Link>
+              )}
+              <span className="text-sm text-slate-500 border-l border-slate-300 pl-4 hidden md:inline-block ml-4">
                 Welcome, <span className="font-semibold text-slate-800">{user.name}</span>
               </span>
               <button 
                 onClick={handleLogout}
-                className="text-slate-600 hover:text-red-600 transition-colors font-medium"
+                className="text-slate-600 hover:text-red-600 transition-colors font-medium ml-4"
               >
                 Logout
               </button>
@@ -39,7 +44,7 @@ const Navigation = () => {
           ) : (
             <>
               <Link to="/login" className="text-slate-600 hover:text-indigo-600 transition-colors font-medium border-l border-slate-300 pl-4">Sign In</Link>
-              <Link to="/register" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">Sign Up</Link>
+              <Link to="/register" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors ml-4">Sign Up</Link>
             </>
           )}
         </div>
@@ -53,7 +58,6 @@ const App: React.FC = () => {
     <Router>
       <div className="min-h-screen bg-slate-50">
         <Navigation />
-
         <main className="max-w-7xl mx-auto p-4 py-8">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -61,8 +65,8 @@ const App: React.FC = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/property/:id" element={<PropertyDetails />} />
             
-            {/* Protected Routes Wrapper */}
             <Route element={<ProtectedRoute allowedRoles={['host', 'admin']} />}>
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/property/new" element={<CreateProperty />} />
             </Route>
           </Routes>

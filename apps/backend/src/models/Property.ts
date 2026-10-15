@@ -10,7 +10,7 @@ export interface IProperty extends Document {
   bathrooms: number;
   squareFeet: number;
   isAvailable: boolean;
-  host: mongoose.Types.ObjectId;
+  host: string;
   createdAt: Date;
   updatedAt: Date;
 }

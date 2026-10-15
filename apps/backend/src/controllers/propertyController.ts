@@ -42,6 +42,22 @@ export const getPropertyById = async (req: Request, res: Response<ApiResponse<IP
   }
 };
 
+export const getPropertiesByHost = async (req: Request, res: Response<ApiResponse<IProperty>>): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, error: 'User not authenticated' });
+      return;
+    }
+
+    // Find all properties where the host ID matches the logged-in user's ID
+    const properties = await Property.find({ host: req.user._id }).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: properties });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ success: false, error: errorMessage });
+  }
+};
+
 export const createProperty = async (req: Request, res: Response<ApiResponse<IProperty>>): Promise<void> => {
   try {
     if (!req.user) {
@@ -129,3 +145,4 @@ export const deleteProperty = async (req: Request, res: Response<ApiResponse<nul
     res.status(500).json({ success: false, error: errorMessage });
   }
 };
+

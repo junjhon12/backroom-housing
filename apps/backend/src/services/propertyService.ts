@@ -32,3 +32,30 @@ export const fetchPropertyById = async (id: string, signal?: AbortSignal): Promi
 
   return result.data as Property;
 };
+
+export const fetchMyProperties = async (signal?: AbortSignal): Promise<Property[]> => {
+  const token = getAuthToken();
+  const response = await fetch('/api/properties/me', {
+    signal,
+    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+  });
+  
+  const result: ApiResponse<Property[]> = await response.json();
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(result.error || 'Failed to fetch your properties');
+  }
+  return result.data as Property[];
+};
+
+export const deletePropertyListing = async (id: string): Promise<void> => {
+  const token = getAuthToken();
+  const response = await fetch(`/api/properties/${id}`, {
+    method: 'DELETE',
+    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+  });
+  
+  const result: ApiResponse<null> = await response.json();
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || 'Failed to delete property');
+  }
+};
