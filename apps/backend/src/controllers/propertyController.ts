@@ -11,7 +11,33 @@ interface ApiResponse<T> {
 
 export const getProperties = async (req: Request, res: Response<ApiResponse<IProperty>>): Promise<void> => {
   try {
-    const properties = await Property.find({ isAvailable: true }).sort({ createdAt: -1 });
+    const { keyword, minPrice, maxPrice, bedrooms } = req.query;
+    
+    // Base query: Only show available properties
+    // We use a Record<string, any> type to allow dynamic query building
+    const dbQuery: Record<string, any> = { isAvailable: true };
+
+    // $regex provides partial, case-insensitive string matching
+    if (keyword) {
+      dbQuery.$or = [
+        { title: { $regex: keyword as string, $options: 'i' } },
+        { location: { $regex: keyword as string, $options: 'i' } }
+      ];
+    }
+
+    // Handle price ranges using MongoDB greater-than/less-than operators
+    if (minPrice || maxPrice) {
+      dbQuery.price = {};
+      if (minPrice) dbQuery.price.$gte = Number(minPrice);
+      if (maxPrice) dbQuery.price.$lte = Number(maxPrice);
+    }
+
+    // Exact match or greater for bedrooms
+    if (bedrooms) {
+      dbQuery.bedrooms = { $gte: Number(bedrooms) };
+    }
+
+    const properties = await Property.find(dbQuery).sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: properties });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

@@ -14,8 +14,9 @@ const getAuthToken = (): string | null => {
   return null;
 };
 
-export const fetchProperties = async (signal?: AbortSignal): Promise<Property[]> => {
-  const response = await fetch('/api/properties', { signal });
+export const fetchProperties = async (queryString: string = '', signal?: AbortSignal): Promise<Property[]> => {   
+  const url = queryString ? `/api/properties?${queryString}` : '/api/properties';
+  const response = await fetch(url, { signal });
   
   if (!response.ok) {
     throw new Error('Failed to fetch properties from the network');
@@ -27,7 +28,7 @@ export const fetchProperties = async (signal?: AbortSignal): Promise<Property[]>
     throw new Error(result.error || 'Invalid API response format');
   }
 
-  return result.data;
+  return result.data as Property[];
 };
 
 export const fetchPropertyById = async (id: string, signal?: AbortSignal): Promise<Property> => {
