@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db';
 import propertyRoutes from './routes/propertyRoutes';
 import authRoutes from './routes/authRoutes';
+import uploadRoutes from './routes/uploadRoutes';
 
 // Enforce environment variables
 dotenv.config();
@@ -24,6 +25,11 @@ app.use(express.json());
 // Mount routers
 app.use('/api/properties', propertyRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// Expose the 'uploads' directory to the public
+const dirname = path.resolve();
+app.use('/uploads', express.static(path.join(dirname, 'uploads')));
 
 // Explicit interface definition for API response payloads
 interface HealthCheckResponse {

@@ -10,6 +10,7 @@ export interface IProperty extends Document {
   bathrooms: number;
   squareFeet: number;
   isAvailable: boolean;
+  imageUrl?: string;
   host: string;
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +26,7 @@ const PropertySchema: Schema = new Schema(
     bathrooms: { type: Number, required: true, min: 0 },
     squareFeet: { type: Number, required: true, min: 0 },
     isAvailable: { type: Boolean, default: true },
+    imageUrl: { type: String, trim: true },
     host: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
