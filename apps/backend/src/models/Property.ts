@@ -11,7 +11,7 @@ export interface IProperty extends Document {
   squareFeet: number;
   isAvailable: boolean;
   imageUrl?: string;
-  host: string;
+  host: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,7 +41,16 @@ const PropertySchema: Schema = new Schema(
 // PERFORMANCE: Text index for highly optimized full-text keyword searches
 PropertySchema.index({ title: 'text', location: 'text', description: 'text' });
 
-// PERFORMANCE: Compound index for filtering active listings by price or bedrooms
-PropertySchema.index({ isAvailable: 1, price: 1, bedrooms: 1 });
+// Default listing feed: filter by availability, newest first. Without createdAt
+// in the index every paginated page falls back to an in-memory sort.
+PropertySchema.index({ isAvailable: 1, createdAt: -1 });
+
+// Independent filters. A single compound index can't serve `bedrooms` on its own
+// when `price` sits between the shared prefix and that field.
+PropertySchema.index({ isAvailable: 1, price: 1 });
+PropertySchema.index({ isAvailable: 1, bedrooms: 1 });
+
+// Host dashboard lookups.
+PropertySchema.index({ host: 1, createdAt: -1 });
 
 export default mongoose.model<IProperty>('Property', PropertySchema);

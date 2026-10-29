@@ -1,4 +1,4 @@
-import type { Property, ApiResponse, PropertyInput } from '../types/property';
+import type { Property, ApiResponse, PaginatedResponse, PaginationMeta, PropertyInput } from '../types/property';
 
 // Helper to extract JWT from local storage
 const getAuthToken = (): string | null => {
@@ -14,7 +14,15 @@ const getAuthToken = (): string | null => {
   return null;
 };
 
-export const fetchProperties = async (queryString: string = '', signal?: AbortSignal): Promise<Property[]> => {   
+export interface PropertyPage {
+  properties: Property[];
+  meta: PaginationMeta;
+}
+
+export const fetchProperties = async (
+  queryString: string = '',
+  signal?: AbortSignal
+): Promise<PropertyPage> => {
   const url = queryString ? `/api/properties?${queryString}` : '/api/properties';
   const response = await fetch(url, { signal });
   
@@ -22,13 +30,13 @@ export const fetchProperties = async (queryString: string = '', signal?: AbortSi
     throw new Error('Failed to fetch properties from the network');
   }
 
-  const result: ApiResponse<Property[]> = await response.json();
+  const result: PaginatedResponse<Property> = await response.json();
   
   if (!result.success || !result.data) {
     throw new Error(result.error || 'Invalid API response format');
   }
 
-  return result.data as Property[];
+  return { properties: result.data, meta: result.meta };
 };
 
 export const fetchPropertyById = async (id: string, signal?: AbortSignal): Promise<Property> => {

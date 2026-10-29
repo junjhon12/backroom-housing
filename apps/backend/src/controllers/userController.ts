@@ -2,76 +2,70 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import User from '../models/User';
 import Property, { IProperty } from '../models/Property';
+import { AppError } from '../utils/AppError';
+import { asyncHandler } from '../utils/asyncHandler';
+import { requireUser } from '../utils/requireUser';
+import type { ApiResponse } from '../types/api';
 
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
-export const toggleFavorite = async (req: Request, res: Response<ApiResponse<mongoose.Types.ObjectId[]>>): Promise<void> => {
-  try {
+export const toggleFavorite = asyncHandler(
+  async (req: Request, res: Response<ApiResponse<string[]>>): Promise<void> => {
+    const user = requireUser(req);
     const { propertyId } = req.params;
-    const userId = req.user?._id;
 
     if (!mongoose.isValidObjectId(propertyId)) {
-      res.status(400).json({ success: false, error: 'Invalid property ID' });
-      return;
+      throw new AppError(400, 'Invalid property ID');
     }
 
     // Refuse to store a reference to a listing that no longer exists, which
     // would otherwise become a dangling entry in the saved list.
     const propertyExists = await Property.exists({ _id: propertyId });
     if (!propertyExists) {
-      res.status(404).json({ success: false, error: 'Property not found' });
-      return;
+      throw new AppError(404, 'Property not found');
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      res.status(404).json({ success: false, error: 'User not found' });
-      return;
-    }
-
-    // Check if the property is already in the saved array
+    const favoriteId = new mongoose.Types.ObjectId(propertyId);
     const isFavorited = user.savedProperties.some((id) => id.toString() === propertyId);
 
-    if (isFavorited) {
-      // Remove it
-      user.savedProperties = user.savedProperties.filter((id) => id.toString() !== propertyId);
-    } else {
-      // Add it
-      user.savedProperties.push(new mongoose.Types.ObjectId(propertyId));
+    // Atomic update: unlike read-modify-write on the whole document, a double
+    // click can't interleave and lose an entry.
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      isFavorited
+        ? { $pull: { savedProperties: favoriteId } }
+        : { $addToSet: { savedProperties: favoriteId } },
+      { new: true, select: 'savedProperties' }
+    );
+
+    if (!updatedUser) {
+      throw new AppError(404, 'User not found');
     }
 
-    await user.save();
-
-    res.status(200).json({ success: true, data: user.savedProperties });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to toggle favorite status';
-    res.status(500).json({ success: false, error: errorMessage });
+    res.status(200).json({
+      success: true,
+      data: updatedUser.savedProperties.map((id) => id.toString()),
+    });
   }
-};
+);
 
-export const getFavorites = async (req: Request, res: Response<ApiResponse<IProperty[]>>): Promise<void> => {
-  try {
+export const getFavorites = asyncHandler(
+  async (req: Request, res: Response<ApiResponse<IProperty[]>>): Promise<void> => {
+    const user = requireUser(req);
+
     // Find the user and automatically replace the ObjectIds with the actual Property documents
-    const user = await User.findById(req.user?._id).populate<{ savedProperties: IProperty[] }>('savedProperties');
+    const populatedUser = await User.findById(user._id).populate<{
+      savedProperties: IProperty[];
+    }>('savedProperties');
 
-    if (!user) {
-      res.status(404).json({ success: false, error: 'User not found' });
-      return;
+    if (!populatedUser) {
+      throw new AppError(404, 'User not found');
     }
 
     // `populate` returns null for references whose property was deleted, so
     // strip those out before handing the list to the client.
-    const favorites = user.savedProperties.filter(
+    const favorites = populatedUser.savedProperties.filter(
       (property): property is IProperty => Boolean(property)
     );
 
     res.status(200).json({ success: true, data: favorites });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch favorite properties';
-    res.status(500).json({ success: false, error: errorMessage });
   }
-};
+);

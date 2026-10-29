@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import type { Property } from '../types/property';
+import type { Property, PaginationMeta } from '../types/property';
 import { fetchProperties } from '../services/propertyService';
 import PropertyCard from '../components/PropertyCard';
 
 const Home: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,6 +14,7 @@ const Home: React.FC = () => {
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [bedrooms, setBedrooms] = useState<string>('');
   const [activeQuery, setActiveQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -20,22 +22,31 @@ const Home: React.FC = () => {
     const loadProperties = async () => {
       try {
         setLoading(true);
-        const data = await fetchProperties(activeQuery, controller.signal);
-        setProperties(data);
+
+        // Pagination is server-driven, so it has to travel with the filters.
+        const params = new URLSearchParams(activeQuery);
+        params.set('page', String(page));
+
+        const result = await fetchProperties(params.toString(), controller.signal);
+        setProperties(result.properties);
+        setMeta(result.meta);
         setError(null);
       } catch (err) {
         if (err instanceof Error && err.name !== 'AbortError') {
           setError(err.message);
         }
       } finally {
-        setLoading(false);
+        // Don't touch state after the request was superseded or unmounted.
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     loadProperties();
 
     return () => controller.abort();
-  }, [activeQuery]);
+  }, [activeQuery, page]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +57,8 @@ const Home: React.FC = () => {
     if (maxPrice) params.append('maxPrice', maxPrice);
     if (bedrooms) params.append('bedrooms', bedrooms);
     
+    // New criteria always start from the first page.
+    setPage(1);
     setActiveQuery(params.toString());
   };
 
@@ -53,6 +66,7 @@ const Home: React.FC = () => {
     setKeyword('');
     setMaxPrice('');
     setBedrooms('');
+    setPage(1);
     setActiveQuery('');
   };
 
@@ -115,11 +129,37 @@ const Home: React.FC = () => {
           No properties found matching your criteria.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {properties.map((property) => (
-            <PropertyCard key={property._id} property={property} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {properties.map((property) => (
+              <PropertyCard key={property._id} property={property} />
+            ))}
+          </div>
+
+          {meta && meta.totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 pt-2">
+              <button
+                type="button"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={page <= 1}
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-slate-600">
+                Page {meta.page} of {meta.totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((current) => Math.min(meta.totalPages, current + 1))}
+                disabled={page >= meta.totalPages}
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
