@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import User from '../models/User';
-import { IProperty } from '../models/Property';
+import Property, { IProperty } from '../models/Property';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -16,6 +16,14 @@ export const toggleFavorite = async (req: Request, res: Response<ApiResponse<mon
 
     if (!mongoose.isValidObjectId(propertyId)) {
       res.status(400).json({ success: false, error: 'Invalid property ID' });
+      return;
+    }
+
+    // Refuse to store a reference to a listing that no longer exists, which
+    // would otherwise become a dangling entry in the saved list.
+    const propertyExists = await Property.exists({ _id: propertyId });
+    if (!propertyExists) {
+      res.status(404).json({ success: false, error: 'Property not found' });
       return;
     }
 
@@ -55,7 +63,13 @@ export const getFavorites = async (req: Request, res: Response<ApiResponse<IProp
       return;
     }
 
-    res.status(200).json({ success: true, data: user.savedProperties });
+    // `populate` returns null for references whose property was deleted, so
+    // strip those out before handing the list to the client.
+    const favorites = user.savedProperties.filter(
+      (property): property is IProperty => Boolean(property)
+    );
+
+    res.status(200).json({ success: true, data: favorites });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to fetch favorite properties';
     res.status(500).json({ success: false, error: errorMessage });

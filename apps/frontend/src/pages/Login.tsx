@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { loginUser } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,14 +10,18 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, user } = useAuth();
+
+  // Return the user to the page that redirected them here, if any.
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/';
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate(redirectTo, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +31,7 @@ const Login: React.FC = () => {
     try {
       const data = await loginUser({ email, password });
       login(data); // Update global context
-      navigate('/');
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

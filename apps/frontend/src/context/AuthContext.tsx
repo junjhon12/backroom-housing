@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, type ReactNode } from 'react';
 import type { User } from '../types/auth';
 
 interface AuthContextType {
@@ -7,32 +7,35 @@ interface AuthContextType {
   logout: () => void;
 }
 
+const STORAGE_KEY = 'backroom_user';
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+// Read synchronously during the initial render. Hydrating in an effect instead
+// means the first paint sees `user === null`, so a refresh on a protected route
+// bounces the user to /login before the session is restored.
+const readStoredUser = (): User | null => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? (JSON.parse(stored) as User) : null;
+  } catch (error) {
+    console.error('Failed to parse stored user configuration', error);
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
+};
 
-  useEffect(() => {
-    // Hydrate state from localStorage on initial application load
-    const storedUser = localStorage.getItem('backroom_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Failed to parse stored user configuration', error);
-        localStorage.removeItem('backroom_user');
-      }
-    }
-  }, []);
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(readStoredUser);
 
   const login = (userData: User) => {
     setUser(userData);
-    localStorage.setItem('backroom_user', JSON.stringify(userData));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('backroom_user');
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (

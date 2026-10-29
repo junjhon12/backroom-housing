@@ -1,8 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
 import { connectDB } from './config/db';
+import { UPLOADS_DIR } from './config/paths';
 import propertyRoutes from './routes/propertyRoutes';
 import authRoutes from './routes/authRoutes';
 import uploadRoutes from './routes/uploadRoutes';
@@ -31,8 +31,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
 
 // Expose the 'uploads' directory to the public
-const dirname = path.resolve();
-app.use('/uploads', express.static(path.join(dirname, 'uploads')));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Explicit interface definition for API response payloads
 interface HealthCheckResponse {

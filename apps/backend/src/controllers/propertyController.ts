@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
+import fs from 'fs';
+import path from 'path';
 import Property, { IProperty } from '../models/Property';
+import User from '../models/User';
+import { UPLOADS_DIR } from '../config/paths';
 
 // Explicit interface for API response
 interface ApiResponse<T> {
@@ -8,6 +12,31 @@ interface ApiResponse<T> {
   data?: T | T[];
   error?: string;
 }
+
+// The only fields a client may set. Everything else — most importantly `host` —
+// is derived from the verified token or managed by the server, so a request body
+// can never reassign ownership or smuggle in update operators.
+const EDITABLE_FIELDS = [
+  'title',
+  'description',
+  'price',
+  'location',
+  'bedrooms',
+  'bathrooms',
+  'squareFeet',
+  'isAvailable',
+  'imageUrl',
+] as const;
+
+const pickEditableFields = (body: Record<string, unknown>): Record<string, unknown> => {
+  const fields: Record<string, unknown> = {};
+  for (const field of EDITABLE_FIELDS) {
+    if (body[field] !== undefined) {
+      fields[field] = body[field];
+    }
+  }
+  return fields;
+};
 
 export const getProperties = async (req: Request, res: Response<ApiResponse<IProperty>>): Promise<void> => {
   try {
@@ -87,7 +116,7 @@ export const createProperty = async (req: Request, res: Response<ApiResponse<IPr
 
     // Implicitly tie the property to the verified token's user ID
     const propertyData = {
-      ...req.body,
+      ...pickEditableFields(req.body),
       host: req.user._id
     };
 
@@ -123,7 +152,7 @@ export const updateProperty = async (req: Request, res: Response<ApiResponse<IPr
       return;
     }
 
-    const updatedProperty = await Property.findByIdAndUpdate(id, req.body, {
+    const updatedProperty = await Property.findByIdAndUpdate(id, pickEditableFields(req.body), {
       new: true,
       runValidators: true,
     });
@@ -158,6 +187,23 @@ export const deleteProperty = async (req: Request, res: Response<ApiResponse<nul
     }
 
     await property.deleteOne();
+
+    const propertyId = property._id as mongoose.Types.ObjectId;
+
+    // Keep references consistent: a deleted listing must not linger in anyone's
+    // saved list, otherwise `populate` hands the favorites page a null entry.
+    await User.updateMany(
+      { savedProperties: propertyId },
+      { $pull: { savedProperties: propertyId } }
+    );
+
+    // Remove the uploaded image so the disk doesn't accumulate orphans.
+    if (property.imageUrl) {
+      const imagePath = path.join(UPLOADS_DIR, path.basename(property.imageUrl));
+      await fs.promises.unlink(imagePath).catch(() => {
+        // The file may already be gone; the listing is still deleted.
+      });
+    }
 
     res.status(200).json({ success: true, data: null });
   } catch (error) {

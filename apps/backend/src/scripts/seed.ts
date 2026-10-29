@@ -1,9 +1,19 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Property from '../models/Property';
+import User from '../models/User';
 
 // Explicitly define path to .env since this script runs outside the standard server context
 dotenv.config({ path: __dirname + '/../../.env' });
+
+// Listings require a host, so the seed needs a user to own them. Created through
+// the model (not an upsert) so the password hashing hook runs.
+const SEED_HOST = {
+  name: 'Backroom Demo Host',
+  email: 'host@backroom.local',
+  password: 'password123',
+  role: 'host' as const,
+};
 
 const seedProperties = [
   {
@@ -47,12 +57,25 @@ const runSeed = async (): Promise<void> => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('[Seed] Database connected successfully.');
 
+    let host = await User.findOne({ email: SEED_HOST.email });
+    if (!host) {
+      host = await User.create(SEED_HOST);
+      console.log(`[Seed] Demo host created: ${host.email}`);
+    } else {
+      console.log(`[Seed] Reusing demo host: ${host.email}`);
+    }
+
     // Idempotent operation: Clear existing data before inserting
     await Property.deleteMany({});
     console.log('[Seed] Existing properties cleared.');
 
-    // Insert mock data
-    await Property.insertMany(seedProperties);
+    // Saved listings still point at the documents we just removed; reset them
+    // so nobody is left with dangling references.
+    await User.updateMany({}, { $set: { savedProperties: [] } });
+    console.log('[Seed] Saved listings reset.');
+
+    // Insert mock data, owned by the demo host
+    await Property.insertMany(seedProperties.map((property) => ({ ...property, host: host._id })));
     console.log('[Seed] Mock properties inserted successfully.');
 
     process.exit(0);

@@ -11,3 +11,7 @@ build/
 Thumbs.db
 package-lock.json
 apps/frontend/package.json
+
+# Local user uploads (keep the directory itself)
+apps/backend/uploads/*
+!apps/backend/uploads/.gitkeep
