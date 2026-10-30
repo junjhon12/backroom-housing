@@ -15,7 +15,7 @@ const BASE =
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'border-ink bg-ink text-cream hover:bg-cream hover:text-ink',
   secondary: 'border-ink bg-transparent text-ink hover:bg-ink hover:text-cream',
-  danger: 'border-magenta bg-magenta text-cream hover:bg-cream hover:text-magenta',
+  danger: 'border-signal bg-signal text-cream hover:bg-ink hover:border-ink hover:text-cream',
   ghost: 'border-transparent bg-transparent text-ink hover:underline underline-offset-4',
 };
 

@@ -1,11 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export type HazardClass = 'safe' | 'caution' | 'hostile';
+
 // Explicit interface for the Property payload
 export interface IProperty extends Document {
   title: string;
   description: string;
   price: number;
-  location: string;
+  level: string;
+  sector: string;
+  hazardClass: HazardClass;
   bedrooms: number;
   bathrooms: number;
   squareFeet: number;
@@ -21,7 +25,15 @@ const PropertySchema: Schema = new Schema(
     title: { type: String, required: true, trim: true },
     description: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
-    location: { type: String, required: true, trim: true },
+    // Location is lore-internal: units are addressed by level and sector, never
+    // by a real-world street address.
+    level: { type: String, required: true, trim: true },
+    sector: { type: String, required: true, trim: true },
+    hazardClass: {
+      type: String,
+      enum: ['safe', 'caution', 'hostile'],
+      default: 'safe',
+    },
     bedrooms: { type: Number, required: true, min: 0 },
     bathrooms: { type: Number, required: true, min: 0 },
     squareFeet: { type: Number, required: true, min: 0 },
@@ -39,7 +51,12 @@ const PropertySchema: Schema = new Schema(
 );
 
 // PERFORMANCE: Text index for highly optimized full-text keyword searches
-PropertySchema.index({ title: 'text', location: 'text', description: 'text' });
+PropertySchema.index({
+  title: 'text',
+  level: 'text',
+  sector: 'text',
+  description: 'text',
+});
 
 // Default listing feed: filter by availability, newest first. Without createdAt
 // in the index every paginated page falls back to an in-memory sort.

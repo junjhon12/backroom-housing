@@ -1,9 +1,13 @@
+export type HazardClass = 'safe' | 'caution' | 'hostile';
+
 export interface Property {
   _id: string;
   title: string;
   description: string;
   price: number;
-  location: string;
+  level: string;
+  sector: string;
+  hazardClass: HazardClass;
   bedrooms: number;
   bathrooms: number;
   squareFeet: number;

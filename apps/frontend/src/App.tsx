@@ -20,7 +20,7 @@ import NotFound from "./pages/NotFound";
 import { buttonStyles } from "./components/ui";
 
 const NAV_LINK =
-  "text-[10px] uppercase tracking-[0.18em] text-cream/80 hover:text-moss transition-colors";
+  "text-[10px] uppercase tracking-[0.18em] text-cream/75 hover:text-moss transition-colors";
 
 const Navigation = () => {
   const { user, logout } = useAuth();
@@ -35,24 +35,31 @@ const Navigation = () => {
 
   const closeMenu = () => setMenuOpen(false);
 
-  const links: Array<{ to: string; label: string }> = [{ to: "/", label: "Explore" }];
+  const links: Array<{ to: string; label: string }> = [{ to: "/", label: "Directory" }];
 
   if (user) {
     links.push({ to: "/favorites", label: "Saved" });
     if (user.role === "host" || user.role === "admin") {
-      links.push({ to: "/dashboard", label: "Dashboard" });
+      links.push({ to: "/dashboard", label: "Console" });
     }
   }
 
   return (
     <nav aria-label="Main" className="sticky top-0 z-30 border-b border-ink bg-ink text-cream">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link
-          to="/"
-          onClick={closeMenu}
-          className="font-display text-xl uppercase leading-none tracking-wide"
-        >
-          Backroom
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+        <Link to="/" onClick={closeMenu} className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="flex h-9 w-9 shrink-0 items-center justify-center border border-cream/40 font-display text-lg leading-none"
+          >
+            B
+          </span>
+          <span className="leading-none">
+            <span className="block font-display text-lg uppercase tracking-wide">Backroom</span>
+            <span className="mt-1 block text-[8px] uppercase tracking-[0.26em] text-cream/50">
+              Housing registry
+            </span>
+          </span>
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">
@@ -64,11 +71,11 @@ const Navigation = () => {
 
           {user ? (
             <>
-              <span className="border-l border-cream/25 pl-6 text-[10px] uppercase tracking-[0.18em] text-cream/60">
+              <span className="border-l border-cream/25 pl-6 text-[10px] uppercase tracking-[0.18em] text-cream/50">
                 {user.name}
               </span>
               <button type="button" onClick={handleLogout} className={NAV_LINK}>
-                Logout
+                Sign out
               </button>
             </>
           ) : (
@@ -84,7 +91,7 @@ const Navigation = () => {
                   className: "border-cream text-cream hover:bg-cream hover:text-ink",
                 })}
               >
-                Sign up
+                Apply
               </Link>
             </>
           )}
@@ -112,7 +119,7 @@ const Navigation = () => {
 
             {user ? (
               <>
-                <span className="border-t border-cream/20 pt-4 text-[10px] uppercase tracking-[0.18em] text-cream/60">
+                <span className="border-t border-cream/20 pt-4 text-[10px] uppercase tracking-[0.18em] text-cream/50">
                   {user.name}
                 </span>
                 <button
@@ -120,7 +127,7 @@ const Navigation = () => {
                   onClick={handleLogout}
                   className={`${NAV_LINK} text-left`}
                 >
-                  Logout
+                  Sign out
                 </button>
               </>
             ) : (
@@ -138,7 +145,7 @@ const Navigation = () => {
                       "border-cream text-cream hover:bg-cream hover:text-ink self-start",
                   })}
                 >
-                  Sign up
+                  Apply
                 </Link>
               </>
             )}
@@ -176,10 +183,15 @@ const App: React.FC = () => {
           </Routes>
         </main>
 
-        <footer className="border-t border-ink/30">
-          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-[10px] uppercase tracking-[0.18em] text-ink/60 md:flex-row md:justify-between">
-            <span>Backroom Housing — A subsidiary of nowhere</span>
-            <span>Est. 2026 / All units subject to availability</span>
+        <footer className="border-t border-ink bg-ink text-cream">
+          <div className="mx-auto grid max-w-7xl gap-3 px-4 py-6 text-[10px] uppercase tracking-[0.18em] sm:grid-cols-3">
+            <span>Backroom Housing Registry</span>
+            <span className="text-cream/70 sm:text-center">
+              An office of the M.E.G. — Level 0
+            </span>
+            <span className="text-cream/70 sm:text-right">
+              Do not attempt to leave the premises
+            </span>
           </div>
         </footer>
       </div>

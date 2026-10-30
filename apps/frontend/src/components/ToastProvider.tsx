@@ -24,7 +24,7 @@ const DISMISS_AFTER_MS = 4000;
 
 const VARIANT_CLASSES: Record<ToastVariant, string> = {
   success: 'border-l-moss',
-  error: 'border-l-magenta',
+  error: 'border-l-signal',
   info: 'border-l-ink',
 };
 
@@ -86,7 +86,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               type="button"
               onClick={() => dismiss(toast.id)}
               aria-label="Dismiss notification"
-              className="shrink-0 text-base leading-none text-ink/50 transition-colors hover:text-ink"
+              className="shrink-0 text-base leading-none text-ink/65 transition-colors hover:text-ink"
             >
               &times;
             </button>

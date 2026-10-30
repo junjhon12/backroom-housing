@@ -46,18 +46,22 @@ const PropertyForm: FC<PropertyFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Field label="Title" htmlFor="property-title">
+      <Field label="File title" htmlFor="property-title">
         <Input
           id="property-title"
           name="title"
           required
           value={values.title}
           onChange={handleChange}
-          placeholder="Modern Downtown Loft"
+          placeholder="The Lobby, Reclaimed"
         />
       </Field>
 
-      <Field label="Description" htmlFor="property-description">
+      <Field
+        label="Field notes"
+        htmlFor="property-description"
+        hint="Describe the space honestly. Applicants are entitled to know about the hum."
+      >
         <Textarea
           id="property-description"
           name="description"
@@ -65,12 +69,36 @@ const PropertyForm: FC<PropertyFormProps> = ({
           rows={4}
           value={values.description}
           onChange={handleChange}
-          placeholder="Describe the space, the light, the noise level."
+          placeholder="Damp carpet, steady fluorescent light, no windows. One door that should not be opened."
         />
       </Field>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <Field label="Price ($)" htmlFor="property-price">
+        <Field label="Level" htmlFor="property-level" hint="e.g. Level 0">
+          <Input
+            id="property-level"
+            name="level"
+            required
+            value={values.level}
+            onChange={handleChange}
+            placeholder="Level 0"
+          />
+        </Field>
+
+        <Field label="Sector" htmlFor="property-sector" hint="e.g. Sector B-12">
+          <Input
+            id="property-sector"
+            name="sector"
+            required
+            value={values.sector}
+            onChange={handleChange}
+            placeholder="Sector B-12"
+          />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
+        <Field label="Rent ($ / month)" htmlFor="property-price">
           <Input
             id="property-price"
             name="price"
@@ -82,19 +110,6 @@ const PropertyForm: FC<PropertyFormProps> = ({
           />
         </Field>
 
-        <Field label="Location" htmlFor="property-location">
-          <Input
-            id="property-location"
-            name="location"
-            required
-            value={values.location}
-            onChange={handleChange}
-            placeholder="Downtown Tech District"
-          />
-        </Field>
-      </div>
-
-      <div className={`grid grid-cols-1 gap-6 ${showStatus ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
         <Field label="Bedrooms" htmlFor="property-bedrooms">
           <Input
             id="property-bedrooms"
@@ -119,7 +134,7 @@ const PropertyForm: FC<PropertyFormProps> = ({
           />
         </Field>
 
-        <Field label="Square feet" htmlFor="property-square-feet">
+        <Field label="Area (sq ft)" htmlFor="property-square-feet">
           <Input
             id="property-square-feet"
             name="squareFeet"
@@ -130,17 +145,36 @@ const PropertyForm: FC<PropertyFormProps> = ({
             onChange={handleChange}
           />
         </Field>
+      </div>
+
+      <div className={`grid grid-cols-1 gap-6 ${showStatus ? 'md:grid-cols-2' : ''}`}>
+        <Field
+          label="Hazard class"
+          htmlFor="property-hazard"
+          hint="Applicants see this classification before they request the file."
+        >
+          <Select
+            id="property-hazard"
+            name="hazardClass"
+            value={values.hazardClass}
+            onChange={handleChange}
+          >
+            <option value="safe">Safe</option>
+            <option value="caution">Caution</option>
+            <option value="hostile">Hostile</option>
+          </Select>
+        </Field>
 
         {showStatus && (
-          <Field label="Status" htmlFor="property-status">
+          <Field label="Filing status" htmlFor="property-status">
             <Select
               id="property-status"
               name="isAvailable"
               value={values.isAvailable.toString()}
               onChange={handleChange}
             >
-              <option value="true">Active</option>
-              <option value="false">Hidden</option>
+              <option value="true">Open</option>
+              <option value="false">Withdrawn</option>
             </Select>
           </Field>
         )}

@@ -41,12 +41,15 @@ const Login: React.FC = () => {
   };
 
   return (
-    <Card className="mx-auto mt-8 w-full max-w-md p-8">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">002 — Resident access</p>
-      <h1 className="mt-2 font-display text-4xl uppercase leading-none">Welcome back</h1>
+    <Card className="mx-auto mt-6 w-full max-w-md p-8">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">Form 01 — Check-in</p>
+      <h1 className="mt-2 font-display text-4xl uppercase leading-none">Returning resident</h1>
+      <p className="mt-3 text-sm leading-relaxed text-ink/70">
+        Present your credentials. The Registry does not keep paper copies.
+      </p>
 
       {error && (
-        <div role="alert" className="mt-6 border border-magenta bg-magenta/10 px-4 py-3 text-sm text-magenta">
+        <div role="alert" className="mt-6 border border-signal bg-signal/10 px-4 py-3 text-sm text-signal">
           {error}
         </div>
       )}
@@ -77,13 +80,13 @@ const Login: React.FC = () => {
         </Field>
 
         <Button type="submit" disabled={isLoading} className="w-full">
-          {isLoading ? 'Signing in…' : 'Sign in'}
+          {isLoading ? 'Checking in…' : 'Check in'}
         </Button>
       </form>
 
       <p className="mt-6 border-t border-ink/20 pt-4 text-xs text-ink/70">
         No file on record?{' '}
-        <Link to="/register" className="underline underline-offset-4 hover:text-magenta">
+        <Link to="/register" className="underline underline-offset-4 hover:text-signal">
           Apply for residency
         </Link>
       </p>

@@ -1,6 +1,6 @@
 import { type FC, type ReactNode } from 'react';
 
-type BadgeVariant = 'default' | 'accent' | 'moss' | 'outline';
+export type BadgeVariant = 'default' | 'signal' | 'moss' | 'outline' | 'carpet';
 
 interface BadgeProps {
   variant?: BadgeVariant;
@@ -10,9 +10,10 @@ interface BadgeProps {
 
 const VARIANTS: Record<BadgeVariant, string> = {
   default: 'border-ink bg-ink text-cream',
-  accent: 'border-magenta bg-magenta text-cream',
+  signal: 'border-signal bg-signal text-cream',
   moss: 'border-ink bg-moss text-ink',
   outline: 'border-ink bg-transparent text-ink',
+  carpet: 'border-ink bg-carpet text-cream',
 };
 
 export const Badge: FC<BadgeProps> = ({ variant = 'default', children, className = '' }) => (

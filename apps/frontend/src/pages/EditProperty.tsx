@@ -28,7 +28,9 @@ const EditProperty: React.FC = () => {
           title: data.title,
           description: data.description,
           price: data.price,
-          location: data.location,
+          level: data.level,
+          sector: data.sector,
+          hazardClass: data.hazardClass,
           bedrooms: data.bedrooms,
           bathrooms: data.bathrooms,
           squareFeet: data.squareFeet,
@@ -57,7 +59,7 @@ const EditProperty: React.FC = () => {
 
     try {
       await updatePropertyListing(id, values);
-      showToast('Listing updated', 'success');
+      showToast('File amended', 'success');
       navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
@@ -79,20 +81,24 @@ const EditProperty: React.FC = () => {
 
   return (
     <Card className="mx-auto mt-4 w-full max-w-2xl p-8">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">003 — Amend listing</p>
-      <h1 className="mt-2 font-display text-4xl uppercase leading-none">Edit listing</h1>
+      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">Form 04 — Amendment</p>
+      <h1 className="mt-2 font-display text-4xl uppercase leading-none">Amend file</h1>
+      <p className="mt-3 text-sm leading-relaxed text-ink/70">
+        Amendments are recorded against the original file. Photographs cannot be replaced once
+        filed.
+      </p>
 
       {error && (
-        <div role="alert" className="mt-6 border border-magenta bg-magenta/10 px-4 py-3 text-sm text-magenta">
+        <div role="alert" className="mt-6 border border-signal bg-signal/10 px-4 py-3 text-sm text-signal">
           {error}
         </div>
       )}
 
-      <div className="mt-6">
+      <div className="mt-6 border-t border-ink/20 pt-6">
         {initialValues && (
           <PropertyForm
             initialValues={initialValues}
-            submitLabel="Save changes"
+            submitLabel="Save amendment"
             submittingLabel="Saving…"
             isSubmitting={isSubmitting}
             onSubmit={handleSubmit}

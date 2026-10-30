@@ -37,12 +37,15 @@ const Register: React.FC = () => {
   };
 
   return (
-    <Card className="mx-auto mt-8 w-full max-w-md p-8">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">002 — Application</p>
+    <Card className="mx-auto mt-6 w-full max-w-md p-8">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">Form 02 — Application</p>
       <h1 className="mt-2 font-display text-4xl uppercase leading-none">Apply for residency</h1>
+      <p className="mt-3 text-sm leading-relaxed text-ink/70">
+        All applicants are recorded. Filing does not guarantee placement.
+      </p>
 
       {error && (
-        <div role="alert" className="mt-6 border border-magenta bg-magenta/10 px-4 py-3 text-sm text-magenta">
+        <div role="alert" className="mt-6 border border-signal bg-signal/10 px-4 py-3 text-sm text-signal">
           {error}
         </div>
       )}
@@ -86,14 +89,14 @@ const Register: React.FC = () => {
         </Field>
 
         <Button type="submit" disabled={isLoading} className="w-full">
-          {isLoading ? 'Submitting…' : 'Submit application'}
+          {isLoading ? 'Filing…' : 'File application'}
         </Button>
       </form>
 
       <p className="mt-6 border-t border-ink/20 pt-4 text-xs text-ink/70">
         Already on file?{' '}
-        <Link to="/login" className="underline underline-offset-4 hover:text-magenta">
-          Sign in
+        <Link to="/login" className="underline underline-offset-4 hover:text-signal">
+          Check in
         </Link>
       </p>
     </Card>

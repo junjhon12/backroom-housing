@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import type { Property, PaginationMeta } from '../types/property';
 import { fetchProperties } from '../services/propertyService';
 import PropertyCard from '../components/PropertyCard';
-import { Button, EmptyState, Field, Input, Select, Skeleton } from '../components/ui';
+import { Button, buttonStyles, EmptyState, Field, Input, Select, Skeleton } from '../components/ui';
+
+const NOTICES = [
+  'Do not trust the windows. There are no windows.',
+  'Keep your entry card on your person at all times.',
+  'Rent is due on the first of each cycle. Cycles are not standardised.',
+  'Report unattended humming to your floor liaison.',
+];
 
 const Home: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -90,45 +97,85 @@ const Home: React.FC = () => {
   };
 
   const resultSummary = loading
-    ? 'Loading listings'
-    : `${meta?.total ?? properties.length} listings found`;
+    ? 'Loading files'
+    : `${meta?.total ?? properties.length} files found`;
 
   return (
-    <div className="space-y-10">
-      <header className="border-b border-ink pb-8">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">001 — Availability</p>
-        <h1 className="mt-3 font-display text-6xl uppercase leading-[0.85] md:text-8xl">
-          Stable.
-          <br />
-          Quiet.
-          <br />
-          Yours.
-        </h1>
-        <p className="mt-5 max-w-xl text-sm leading-relaxed text-ink/70">
-          Find your next space in the Backroom ecosystem. Every listing is verified, filed,
-          and available for immediate review.
-        </p>
+    <div className="space-y-12">
+      <header className="grid gap-8 border-b border-ink pb-10 lg:grid-cols-[1.55fr_1fr] lg:items-end">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-ink/60">
+            Form 12-B · Residential placement
+          </p>
+
+          <h1 className="mt-4 font-display text-[3.5rem] uppercase leading-[0.82] sm:text-7xl md:text-8xl">
+            The
+            <br />
+            Backrooms
+            <br />
+            are open.
+          </h1>
+
+          <p className="mt-6 max-w-xl text-sm leading-relaxed text-ink/75">
+            The Registry places vetted applicants in surveyed units across the known levels.
+            Every file is inspected before it is released. No windows, no exits, no surprises.
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href="#directory" className={buttonStyles()}>
+              Browse directory
+            </a>
+            <Link to="/register" className={buttonStyles({ variant: 'secondary' })}>
+              Apply for residency
+            </Link>
+          </div>
+        </div>
+
+        <aside className="border border-ink bg-cream">
+          <div className="flex items-center justify-between border-b border-ink/25 px-4 py-2.5">
+            <span className="text-[10px] uppercase tracking-[0.2em]">Notice to applicants</span>
+            <span aria-hidden="true" className="h-2 w-2 bg-signal" />
+          </div>
+
+          <ol className="divide-y divide-ink/15">
+            {NOTICES.map((notice, index) => (
+              <li key={notice} className="flex gap-3 px-4 py-3 text-sm leading-relaxed text-ink/80">
+                <span className="shrink-0 text-[10px] tracking-[0.14em] text-ink/65">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span>{notice}</span>
+              </li>
+            ))}
+          </ol>
+        </aside>
       </header>
 
-      {/* Search & Filter Bar */}
-      <section className="border border-ink bg-cream p-5">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">Filter listings</p>
+      {/* Intake filter */}
+      <section className="border border-ink bg-cream p-5" aria-labelledby="filter-heading">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="filter-heading" className="font-display text-xl uppercase leading-none">
+            Intake filter
+          </h2>
+          <span className="text-[10px] uppercase tracking-[0.18em] text-ink/65">
+            Applies to all levels
+          </span>
+        </div>
 
         <form
           onSubmit={handleSearch}
-          className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr_1fr_auto] md:items-end"
+          className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr_1fr_auto] md:items-end"
         >
           <Field label="Keyword" htmlFor="search-keyword">
             <Input
               id="search-keyword"
               type="text"
-              placeholder="Title, city, description"
+              placeholder="Level, sector, title"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
           </Field>
 
-          <Field label="Max price ($)" htmlFor="search-max-price">
+          <Field label="Max rent ($ / mo)" htmlFor="search-max-price">
             <Input
               id="search-max-price"
               type="number"
@@ -169,11 +216,16 @@ const Home: React.FC = () => {
         {resultSummary}
       </p>
 
-      <section className="space-y-6">
-        <div className="flex items-baseline justify-between border-b border-ink/30 pb-2">
-          <h2 className="font-display text-2xl uppercase leading-none">Listings</h2>
+      <section id="directory" className="scroll-mt-24 space-y-6" aria-labelledby="directory-heading">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-ink pb-2">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/65">001 — Directory</p>
+            <h2 id="directory-heading" className="mt-1 font-display text-3xl uppercase leading-none">
+              Available units
+            </h2>
+          </div>
           <span className="text-[10px] uppercase tracking-[0.18em] text-ink/60">
-            {meta?.total ?? 0} results
+            {meta?.total ?? 0} files open
           </span>
         </div>
 
@@ -181,7 +233,8 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
               <div key={index} className="border border-ink bg-cream">
-                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-9 w-full" />
+                <Skeleton className="h-44 w-full" />
                 <div className="space-y-3 p-5">
                   <Skeleton className="h-3 w-16" />
                   <Skeleton className="h-6 w-3/4" />
@@ -194,14 +247,14 @@ const Home: React.FC = () => {
         ) : error ? (
           <div
             role="alert"
-            className="border border-magenta bg-magenta/10 px-5 py-4 text-sm text-magenta"
+            className="border border-signal bg-signal/10 px-5 py-4 text-sm text-signal"
           >
             {error}
           </div>
         ) : properties.length === 0 ? (
           <EmptyState
-            title="No listings on file"
-            description="Nothing matches those criteria. Widen the price range or clear the filters."
+            title="No units on file"
+            description="Nothing matches those criteria. Widen the rent range or clear the filter."
             action={
               queryString ? (
                 <Button type="button" variant="secondary" onClick={handleClear}>
