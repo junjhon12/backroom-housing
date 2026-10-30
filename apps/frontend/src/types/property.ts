@@ -12,8 +12,8 @@ export interface Property {
   bathrooms: number;
   squareFeet: number;
   isAvailable: boolean;
+  images: string[];
   host: string;
-  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -14,7 +14,7 @@ export interface IProperty extends Document {
   bathrooms: number;
   squareFeet: number;
   isAvailable: boolean;
-  imageUrl?: string;
+  images: string[];
   host: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -38,7 +38,23 @@ const PropertySchema: Schema = new Schema(
     bathrooms: { type: Number, required: true, min: 0 },
     squareFeet: { type: Number, required: true, min: 0 },
     isAvailable: { type: Boolean, default: true },
-    imageUrl: { type: String, trim: true },
+    // Cover is images[0]. Photographs are only ever local upload paths, so a
+    // client cannot point a listing at an arbitrary external URL.
+    images: {
+      type: [String],
+      default: [],
+      validate: [
+        {
+          validator: (value: string[]) => value.length <= 6,
+          message: 'A listing may hold at most 6 photographs',
+        },
+        {
+          validator: (value: string[]) =>
+            value.every((url) => /^\/uploads\/[A-Za-z0-9._-]+$/.test(url)),
+          message: 'Photographs must be uploaded through the registry',
+        },
+      ],
+    },
     host: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,

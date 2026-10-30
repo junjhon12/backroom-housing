@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FC, type FormEvent } from 'react';
 import type { PropertyInput } from '../types/property';
+import { ImageField } from './ImageField';
 import { Button, Field, Input, Select, Textarea } from './ui';
 
 interface PropertyFormProps {
@@ -22,6 +23,7 @@ const PropertyForm: FC<PropertyFormProps> = ({
   showStatus = false,
 }) => {
   const [values, setValues] = useState<PropertyInput>(initialValues);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -46,6 +48,20 @@ const PropertyForm: FC<PropertyFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink/70">
+          Photographs
+        </p>
+        <ImageField
+          images={values.images}
+          onChange={(images) => setValues((previous) => ({ ...previous, images }))}
+          onUploadingChange={setIsUploading}
+        />
+        <p className="text-[11px] leading-relaxed text-ink/60">
+          Up to six. JPG, PNG or WebP, 5 MB each. The first is used as the cover.
+        </p>
+      </div>
+
       <Field label="File title" htmlFor="property-title">
         <Input
           id="property-title"
@@ -186,7 +202,7 @@ const PropertyForm: FC<PropertyFormProps> = ({
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
+        <Button type="submit" disabled={isSubmitting || isUploading} className="flex-1">
           {isSubmitting ? submittingLabel : submitLabel}
         </Button>
       </div>

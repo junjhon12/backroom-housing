@@ -35,6 +35,7 @@ const EditProperty: React.FC = () => {
           bathrooms: data.bathrooms,
           squareFeet: data.squareFeet,
           isAvailable: data.isAvailable,
+          images: data.images ?? [],
         });
       } catch (err) {
         if (err instanceof Error && err.name !== 'AbortError') {
@@ -84,8 +85,8 @@ const EditProperty: React.FC = () => {
       <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">Form 04 — Amendment</p>
       <h1 className="mt-2 font-display text-4xl uppercase leading-none">Amend file</h1>
       <p className="mt-3 text-sm leading-relaxed text-ink/70">
-        Amendments are recorded against the original file. Photographs cannot be replaced once
-        filed.
+        Amendments are recorded against the original file. The first photograph is used as the
+        cover; the rest appear in the gallery.
       </p>
 
       {error && (

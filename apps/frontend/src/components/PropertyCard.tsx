@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Property } from '../types/property';
 import { Badge, buttonStyles } from './ui';
+import { PropertyImage } from './PropertyImage';
 import { HAZARD_META, formatArea, formatRent } from '../lib/propertyDisplay';
 
 interface PropertyCardProps {
@@ -21,19 +22,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         <Badge variant={hazard.variant}>{hazard.label}</Badge>
       </div>
 
-      <div className="relative h-44 w-full border-b border-ink/25 bg-paper-deep">
-        {property.imageUrl ? (
-          <img
-            src={property.imageUrl}
-            alt={property.title}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-[10px] uppercase tracking-[0.2em] text-ink/65">
-            No photograph on file
-          </div>
-        )}
+      <div className="relative aspect-[4/3] w-full border-b border-ink/25 bg-paper-deep">
+        <PropertyImage
+          src={property.images?.[0]}
+          alt={property.title}
+          className="h-full w-full object-cover"
+        />
 
         <span className="absolute bottom-0 left-0 border-t border-r border-ink bg-paper px-2 py-1 text-[10px] uppercase tracking-[0.16em]">
           {property.level}

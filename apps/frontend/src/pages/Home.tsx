@@ -150,6 +150,22 @@ const Home: React.FC = () => {
         </aside>
       </header>
 
+      {/* Atmosphere band: sets the world without competing with the headline */}
+      <figure className="relative -mx-4 border-y border-ink sm:mx-0 sm:border">
+        <div className="aspect-[16/9] w-full sm:aspect-[21/9]">
+          <img
+            src="/scenes/corridor.svg"
+            alt="A wallpaper corridor on Level 0 receding toward a single dark doorway"
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <figcaption className="absolute bottom-0 left-0 border-t border-r border-ink bg-paper px-3 py-1.5 text-[10px] uppercase tracking-[0.16em]">
+          Level 0 · Corridor 12 · Photographed 1995
+        </figcaption>
+      </figure>
+
       {/* Intake filter */}
       <section className="border border-ink bg-cream p-5" aria-labelledby="filter-heading">
         <div className="flex items-baseline justify-between gap-3">

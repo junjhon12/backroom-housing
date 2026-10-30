@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PropertyInput } from '../types/property';
-import { createPropertyListing, uploadImage } from '../services/propertyService';
+import { createPropertyListing } from '../services/propertyService';
 import { useToast } from '../components/ToastProvider';
 import PropertyForm from '../components/PropertyForm';
-import { Card, Field } from '../components/ui';
+import { Card } from '../components/ui';
 
 const EMPTY_PROPERTY: PropertyInput = {
   title: '',
@@ -17,6 +17,7 @@ const EMPTY_PROPERTY: PropertyInput = {
   bathrooms: 0,
   squareFeet: 0,
   isAvailable: true,
+  images: [],
 };
 
 const CreateProperty: React.FC = () => {
@@ -24,31 +25,13 @@ const CreateProperty: React.FC = () => {
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
-    }
-  };
 
   const handleSubmit = async (values: PropertyInput) => {
     setError(null);
     setIsSubmitting(true);
 
     try {
-      let imageUrl: string | undefined;
-
-      // Pass 1: Upload the image if one was selected
-      if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
-      }
-
-      // Pass 2: Submit the JSON payload with the new URL
-      const newProperty = await createPropertyListing({
-        ...values,
-        ...(imageUrl && { imageUrl }),
-      });
+      const newProperty = await createPropertyListing(values);
 
       showToast('File released to the directory', 'success');
       navigate(`/property/${newProperty._id}`);
@@ -71,22 +54,6 @@ const CreateProperty: React.FC = () => {
           {error}
         </div>
       )}
-
-      <div className="mt-6">
-        <Field
-          label="Photograph"
-          htmlFor="property-image"
-          hint="JPG, PNG or WebP. Maximum 5 MB. Do not photograph the exits."
-        >
-          <input
-            id="property-image"
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="block w-full border border-ink bg-cream p-2 text-xs text-ink/70 file:mr-4 file:border-0 file:bg-ink file:px-3 file:py-2 file:text-[10px] file:uppercase file:tracking-[0.14em] file:text-cream hover:file:bg-signal"
-          />
-        </Field>
-      </div>
 
       <div className="mt-6 border-t border-ink/20 pt-6">
         <PropertyForm

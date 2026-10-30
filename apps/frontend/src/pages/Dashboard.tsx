@@ -5,6 +5,7 @@ import { fetchMyProperties, deletePropertyListing } from '../services/propertySe
 import { useConfirm } from '../components/ConfirmProvider';
 import { useToast } from '../components/ToastProvider';
 import { Badge, Button, buttonStyles, EmptyState, Skeleton } from '../components/ui';
+import { PropertyImage } from '../components/PropertyImage';
 import { HAZARD_META, formatRent } from '../lib/propertyDisplay';
 
 const Dashboard: React.FC = () => {
@@ -109,28 +110,39 @@ const Dashboard: React.FC = () => {
                 key={property._id}
                 className="flex flex-col gap-4 border-b border-ink/20 p-5 last:border-b-0 md:flex-row md:items-center md:justify-between"
               >
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[10px] uppercase tracking-[0.18em] text-ink/65">
-                      Ref {property._id.slice(-4).toUpperCase()}
-                    </span>
-                    <Badge variant={hazard.variant}>{hazard.label}</Badge>
-                    <Badge variant={property.isAvailable ? 'moss' : 'outline'}>
-                      {property.isAvailable ? 'Open' : 'Withdrawn'}
-                    </Badge>
+                <div className="flex min-w-0 items-start gap-4">
+                  <div className="hidden h-16 w-20 shrink-0 border border-ink/30 bg-paper-deep sm:block">
+                    <PropertyImage
+                      src={property.images?.[0]}
+                      alt=""
+                      compact
+                      className="h-full w-full object-cover"
+                    />
                   </div>
 
-                  <Link
-                    to={`/property/${property._id}`}
-                    className="mt-2 block font-display text-2xl uppercase leading-none hover:text-signal"
-                  >
-                    {property.title}
-                  </Link>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] uppercase tracking-[0.18em] text-ink/65">
+                        Ref {property._id.slice(-4).toUpperCase()}
+                      </span>
+                      <Badge variant={hazard.variant}>{hazard.label}</Badge>
+                      <Badge variant={property.isAvailable ? 'moss' : 'outline'}>
+                        {property.isAvailable ? 'Open' : 'Withdrawn'}
+                      </Badge>
+                    </div>
 
-                  <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-ink/60">
-                    {property.level} · {property.sector} · {formatRent(property.price)}/mo ·{' '}
-                    {property.bedrooms} bd / {property.bathrooms} ba
-                  </p>
+                    <Link
+                      to={`/property/${property._id}`}
+                      className="mt-2 block font-display text-2xl uppercase leading-none hover:text-signal"
+                    >
+                      {property.title}
+                    </Link>
+
+                    <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-ink/60">
+                      {property.level} · {property.sector} · {formatRent(property.price)}/mo ·{' '}
+                      {property.bedrooms} bd / {property.bathrooms} ba
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex shrink-0 gap-2">

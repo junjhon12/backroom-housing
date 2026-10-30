@@ -6,6 +6,7 @@ import { fetchFavorites, toggleFavoriteListing } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ToastProvider';
 import { Badge, Button, buttonStyles, Card, Skeleton, Stamp } from '../components/ui';
+import { PropertyImage } from '../components/PropertyImage';
 import { HAZARD_META, formatArea, formatRent } from '../lib/propertyDisplay';
 
 type PropertyParams = {
@@ -24,6 +25,9 @@ const PropertyDetails: React.FC = () => {
   // Favorites State
   const [isFavorited, setIsFavorited] = useState<boolean>(false);
   const [isToggling, setIsToggling] = useState<boolean>(false);
+
+  // Gallery: index into property.images.
+  const [activeImage, setActiveImage] = useState<number>(0);
 
   useEffect(() => {
     if (!id) return;
@@ -47,6 +51,7 @@ const PropertyDetails: React.FC = () => {
         ]);
 
         setProperty(fetchedProperty);
+        setActiveImage(0);
 
         // Determine if this property is already in the user's favorites
         if (user && userFavorites.some((fav) => fav._id === id)) {
@@ -126,6 +131,8 @@ const PropertyDetails: React.FC = () => {
   }
 
   const hazard = HAZARD_META[property.hazardClass] ?? HAZARD_META.safe;
+  const images = property.images ?? [];
+  const reference = property._id.slice(-4).toUpperCase();
 
   return (
     <div className="mx-auto w-full max-w-4xl">
@@ -149,23 +156,56 @@ const PropertyDetails: React.FC = () => {
           </span>
         </div>
 
-        <div className="relative h-64 w-full border-b border-ink bg-paper-deep md:h-80">
-          {property.imageUrl ? (
-            <img
-              src={property.imageUrl}
-              alt={property.title}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-[10px] uppercase tracking-[0.2em] text-ink/65">
-              No photograph on file
-            </div>
+        <div className="relative aspect-[16/10] w-full border-b border-ink bg-paper-deep">
+          <PropertyImage
+            src={images[activeImage]}
+            alt={
+              images.length > 1
+                ? `${property.title} — photograph ${activeImage + 1} of ${images.length}`
+                : property.title
+            }
+            reference={`Ref ${reference}`}
+            eager
+            className="h-full w-full object-cover"
+          />
+
+          {images.length > 1 && (
+            <span className="absolute right-0 top-0 border-b border-l border-ink bg-paper px-2 py-1 text-[10px] uppercase tracking-[0.16em]">
+              {String(activeImage + 1).padStart(2, '0')} /{' '}
+              {String(images.length).padStart(2, '0')}
+            </span>
           )}
 
           <span className="absolute bottom-0 left-0 border-t border-r border-ink bg-paper px-3 py-1.5 text-[10px] uppercase tracking-[0.16em]">
             {property.level} · {property.sector}
           </span>
         </div>
+
+        {images.length > 1 && (
+          <ul className="grid grid-cols-4 gap-px border-b border-ink bg-ink/20">
+            {images.map((url, index) => (
+              <li key={url}>
+                <button
+                  type="button"
+                  onClick={() => setActiveImage(index)}
+                  aria-pressed={index === activeImage}
+                  aria-label={`Show photograph ${index + 1}`}
+                  className={`relative block aspect-[4/3] w-full bg-paper-deep transition-opacity ${
+                    index === activeImage ? 'opacity-100' : 'opacity-60 hover:opacity-90'
+                  }`}
+                >
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  <span
+                    aria-hidden="true"
+                    className={`absolute inset-x-0 bottom-0 h-1 ${
+                      index === activeImage ? 'bg-signal' : 'bg-transparent'
+                    }`}
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <div className="p-6 md:p-8">
           <div className="flex flex-col gap-5 border-b border-ink/20 pb-6 sm:flex-row sm:items-start sm:justify-between">

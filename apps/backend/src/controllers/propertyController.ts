@@ -25,7 +25,7 @@ const EDITABLE_FIELDS = [
   'bathrooms',
   'squareFeet',
   'isAvailable',
-  'imageUrl',
+  'images',
 ] as const;
 
 const pickEditableFields = (body: Record<string, unknown>): Record<string, unknown> => {
@@ -202,13 +202,16 @@ export const deleteProperty = asyncHandler(
       { $pull: { savedProperties: property._id } }
     );
 
-    // Remove the uploaded image so the disk doesn't accumulate orphans.
-    if (property.imageUrl) {
-      const imagePath = path.join(UPLOADS_DIR, path.basename(property.imageUrl));
-      await fs.promises.unlink(imagePath).catch(() => {
-        // The file may already be gone; the listing is still deleted.
-      });
-    }
+    // Remove every uploaded photograph so the disk doesn't accumulate orphans.
+    await Promise.all(
+      property.images.map((url) =>
+        fs.promises
+          .unlink(path.join(UPLOADS_DIR, path.basename(url)))
+          .catch(() => {
+            // The file may already be gone; the listing is still deleted.
+          })
+      )
+    );
 
     res.status(200).json({ success: true, data: null });
   }
