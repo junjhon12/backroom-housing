@@ -30,6 +30,19 @@ const seedProperties = [
     isAvailable: true,
   },
   {
+    title: 'Lobby Annex, No Exit',
+    description:
+      'A short corridor that ends in a door the Registry has never opened. The unit itself is dry and quiet, with a working outlet and a chair that faces the wrong way. Viewings are escorted.',
+    price: 890,
+    level: 'Level 0',
+    sector: 'Sector F-3',
+    hazardClass: 'caution' as const,
+    bedrooms: 0,
+    bathrooms: 1,
+    squareFeet: 280,
+    isAvailable: true,
+  },
+  {
     title: 'Habitable Zone Quarters',
     description:
       'Proper walls, working lights, and a supply drop every eleven days. Foot traffic from Level 0 is audible through the floor at all hours. Bring your own bedding; the Registry does not issue it.',
@@ -40,6 +53,32 @@ const seedProperties = [
     bedrooms: 2,
     bathrooms: 1,
     squareFeet: 900,
+    isAvailable: true,
+  },
+  {
+    title: 'Pipe Dreams, Utility Loft',
+    description:
+      'Converted plant room above the main pipe run. Warm, humid, and loud enough that the hum becomes company. Access is through a hatch; the ladder is fixed and inspected quarterly.',
+    price: 720,
+    level: 'Level 2',
+    sector: 'Sector P-9',
+    hazardClass: 'caution' as const,
+    bedrooms: 1,
+    bathrooms: 1,
+    squareFeet: 340,
+    isAvailable: true,
+  },
+  {
+    title: 'Electrical Station, Insulated Room',
+    description:
+      'A shielded room behind the main switchgear. The wiring is live and the floor is not grounded. Rent is low because the previous three tenants left before the end of their first cycle.',
+    price: 880,
+    level: 'Level 3',
+    sector: 'Sector E-2',
+    hazardClass: 'hostile' as const,
+    bedrooms: 0,
+    bathrooms: 1,
+    squareFeet: 260,
     isAvailable: true,
   },
   {
@@ -56,6 +95,19 @@ const seedProperties = [
     isAvailable: true,
   },
   {
+    title: 'Corner Office, Windowless',
+    description:
+      'The best-lit unit on the floor, which is not saying much. Carpet is original, ceiling tiles are intact, and the coffee machine still works. The window has been painted over from the inside.',
+    price: 1100,
+    level: 'Level 4',
+    sector: 'Sector C-11',
+    hazardClass: 'safe' as const,
+    bedrooms: 1,
+    bathrooms: 1,
+    squareFeet: 410,
+    isAvailable: true,
+  },
+  {
     title: 'Unnumbered Hotel Suite',
     description:
       'A suite on a floor that does not appear in the hotel directory. Room service is prompt and no one has ever seen the staff. Corridors are longer at night than they are during the day.',
@@ -66,6 +118,45 @@ const seedProperties = [
     bedrooms: 3,
     bathrooms: 2,
     squareFeet: 1400,
+    isAvailable: true,
+  },
+  {
+    title: 'Lights Out, Reinforced Unit',
+    description:
+      'Total darkness beyond the door. The unit has its own generator, a reinforced frame, and a supply hatch. Applicants must sign a waiver and register a next of kin before the file is released.',
+    price: 640,
+    level: 'Level 6',
+    sector: 'Sector D-1',
+    hazardClass: 'hostile' as const,
+    bedrooms: 1,
+    bathrooms: 1,
+    squareFeet: 300,
+    isAvailable: true,
+  },
+  {
+    title: 'Suburban House, Repeat Model',
+    description:
+      'A detached house on a street that repeats every ninth lot. Fenced garden, two-car driveway, and a family already living in the kitchen who will not acknowledge you. Viewings are not permitted.',
+    price: 2600,
+    level: 'Level 9',
+    sector: 'Sector 9-C',
+    hazardClass: 'caution' as const,
+    bedrooms: 3,
+    bathrooms: 2,
+    squareFeet: 1600,
+    isAvailable: true,
+  },
+  {
+    title: 'Concrete City, High-Rise Unit',
+    description:
+      'Eleventh-floor unit in a tower with no ground floor. Bare concrete, municipal water, and a balcony that overlooks the same intersection in every direction. Neighbours are quiet to the point of absence.',
+    price: 1900,
+    level: 'Level 11',
+    sector: 'Sector 11-A',
+    hazardClass: 'safe' as const,
+    bedrooms: 2,
+    bathrooms: 1,
+    squareFeet: 780,
     isAvailable: true,
   },
   {
@@ -82,16 +173,16 @@ const seedProperties = [
     isAvailable: true,
   },
   {
-    title: 'Lights Out, Reinforced Unit',
+    title: 'Poolrooms, Deep-End Studio',
     description:
-      'Total darkness beyond the door. The unit has its own generator, a reinforced frame, and a supply hatch. Applicants must sign a waiver and register a next of kin before the file is released.',
-    price: 640,
-    level: 'Level 6',
-    sector: 'Sector D-1',
-    hazardClass: 'hostile' as const,
-    bedrooms: 1,
+      'Studio set into the deep end of an empty pool, drained and sealed by the Registry. Acoustics are extraordinary and the humidity never drops. The ladder is the only way in or out.',
+    price: 1320,
+    level: 'Level 37',
+    sector: 'Sector 9',
+    hazardClass: 'safe' as const,
+    bedrooms: 0,
     bathrooms: 1,
-    squareFeet: 300,
+    squareFeet: 420,
     isAvailable: true,
   },
 ];
@@ -124,7 +215,7 @@ const runSeed = async (): Promise<void> => {
 
     // Insert mock data, owned by the demo host
     await Property.insertMany(seedProperties.map((property) => ({ ...property, host: host._id })));
-    console.log('[Seed] Mock properties inserted successfully.');
+    console.log(`[Seed] ${seedProperties.length} rooms inserted successfully.`);
 
     process.exit(0);
   } catch (error) {

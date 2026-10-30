@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "concurrently \"npm run dev -w @backroom-housing/backend\" \"npm run dev -w @backroom-housing/frontend\"",
     "db:up": "docker compose up -d",
-    "db:down": "docker compose down"
+    "db:down": "docker compose down",
+    "db:seed": "npm run seed -w @backroom-housing/backend",
+    "setup": "npm run db:up && npm run db:seed"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

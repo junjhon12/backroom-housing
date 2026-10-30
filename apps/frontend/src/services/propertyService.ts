@@ -19,15 +19,38 @@ export interface PropertyPage {
   meta: PaginationMeta;
 }
 
+/**
+ * `fetch` rejects on a connection failure and resolves with a non-2xx status
+ * otherwise. Both are turned into a message the user can act on instead of the
+ * browser's "Failed to fetch".
+ */
+const request = async (url: string, init?: RequestInit): Promise<Response> => {
+  try {
+    return await fetch(url, init);
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') throw error;
+    throw new Error('The registry is unreachable. Check that the API and database are running.');
+  }
+};
+
+const readApiError = async (response: Response, fallback: string): Promise<string> => {
+  try {
+    const body = (await response.json()) as { error?: string };
+    return body.error ?? `${fallback} (${response.status})`;
+  } catch {
+    return `${fallback} (${response.status})`;
+  }
+};
+
 export const fetchProperties = async (
   queryString: string = '',
   signal?: AbortSignal
 ): Promise<PropertyPage> => {
   const url = queryString ? `/api/properties?${queryString}` : '/api/properties';
-  const response = await fetch(url, { signal });
-  
+  const response = await request(url, { signal });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch properties from the network');
+    throw new Error(await readApiError(response, 'The registry could not return listings'));
   }
 
   const result: PaginatedResponse<Property> = await response.json();
@@ -40,11 +63,11 @@ export const fetchProperties = async (
 };
 
 export const fetchPropertyById = async (id: string, signal?: AbortSignal): Promise<Property> => {
-  const response = await fetch(`/api/properties/${id}`, { signal });
-  
+  const response = await request(`/api/properties/${id}`, { signal });
+
   if (!response.ok) {
     if (response.status === 404) throw new Error('Property not found');
-    throw new Error('Failed to fetch property details');
+    throw new Error(await readApiError(response, 'The registry could not return this file'));
   }
 
   const result: ApiResponse<Property> = await response.json();
