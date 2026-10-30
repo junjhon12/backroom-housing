@@ -4,6 +4,7 @@ import type { Property } from '../types/property';
 import { fetchPropertyById } from '../services/propertyService';
 import { fetchFavorites, toggleFavoriteListing } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/ToastProvider';
 
 type PropertyParams = {
   id: string;
@@ -12,6 +13,7 @@ type PropertyParams = {
 const PropertyDetails: React.FC = () => {
   const { id } = useParams<PropertyParams>();
   const { user } = useAuth();
+  const { showToast } = useToast();
   
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -67,10 +69,11 @@ const PropertyDetails: React.FC = () => {
 
     try {
       await toggleFavoriteListing(id);
+      showToast(isFavorited ? 'Removed from saved listings' : 'Saved to favorites', 'success');
     } catch (err) {
       // Revert state on failure
       setIsFavorited(prev => !prev);
-      alert(err instanceof Error ? err.message : 'Failed to save property');
+      showToast(err instanceof Error ? err.message : 'Failed to save property', 'error');
     } finally {
       setIsToggling(false);
     }
@@ -104,6 +107,7 @@ const PropertyDetails: React.FC = () => {
             <button 
               onClick={handleToggleFavorite}
               disabled={isToggling}
+              aria-pressed={isFavorited}
               className={`px-6 py-2.5 rounded-lg font-bold transition-all border-2 ${
                 isFavorited 
                   ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100' 

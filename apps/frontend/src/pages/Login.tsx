@@ -48,16 +48,18 @@ const Login: React.FC = () => {
       <h2 className="text-3xl font-bold text-slate-900 mb-6 text-center">Welcome Back</h2>
       
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+        <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-1">Email</label>
           <input 
+            id="login-email"
             type="email" 
+            autoComplete="email"
             required 
             value={email} 
             onChange={(e) => setEmail(e.target.value)}
@@ -66,9 +68,11 @@ const Login: React.FC = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+          <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 mb-1">Password</label>
           <input 
+            id="login-password"
             type="password" 
+            autoComplete="current-password"
             required 
             value={password} 
             onChange={(e) => setPassword(e.target.value)}

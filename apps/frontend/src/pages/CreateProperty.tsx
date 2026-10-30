@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PropertyInput } from '../types/property';
 import { createPropertyListing, uploadImage } from '../services/propertyService';
+import { useToast } from '../components/ToastProvider';
 
 const CreateProperty: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null); 
@@ -51,6 +53,7 @@ const CreateProperty: React.FC = () => {
       const payload = { ...formData, ...(finalImageUrl && { imageUrl: finalImageUrl }) };
       const newProperty = await createPropertyListing(payload);
       
+      showToast('Listing published', 'success');
       navigate(`/property/${newProperty._id}`);
     } catch (err) {
       if (err instanceof Error) {
@@ -66,13 +69,13 @@ const CreateProperty: React.FC = () => {
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-slate-200 mt-8">
       <h1 className="text-3xl font-bold text-slate-900 mb-6">Post a New Listing</h1>
       
-      {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">{error}</div>}
+      {error && <div role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* New Image Upload Field */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Property Image</label>
+          <label htmlFor="property-image" className="block text-sm font-medium text-slate-700 mb-1">Property Image</label>
           <input 
+            id="property-image"
             type="file" 
             accept="image/*"
             onChange={handleImageChange}
@@ -81,44 +84,44 @@ const CreateProperty: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-          <input required type="text" name="title" value={formData.title} onChange={handleChange} 
+          <label htmlFor="property-title" className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+          <input id="property-title" required type="text" name="title" value={formData.title} onChange={handleChange} 
             className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-          <textarea required name="description" value={formData.description} onChange={handleChange} rows={4}
+          <label htmlFor="property-description" className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+          <textarea id="property-description" required name="description" value={formData.description} onChange={handleChange} rows={4}
             className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Price ($)</label>
-            <input required type="number" min="0" name="price" value={formData.price} onChange={handleChange} 
+            <label htmlFor="property-price" className="block text-sm font-medium text-slate-700 mb-1">Price ($)</label>
+            <input id="property-price" required type="number" min="0" name="price" value={formData.price} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
-            <input required type="text" name="location" value={formData.location} onChange={handleChange} 
+            <label htmlFor="property-location" className="block text-sm font-medium text-slate-700 mb-1">Location</label>
+            <input id="property-location" required type="text" name="location" value={formData.location} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Bedrooms</label>
-            <input required type="number" min="0" name="bedrooms" value={formData.bedrooms} onChange={handleChange} 
+            <label htmlFor="property-bedrooms" className="block text-sm font-medium text-slate-700 mb-1">Bedrooms</label>
+            <input id="property-bedrooms" required type="number" min="0" name="bedrooms" value={formData.bedrooms} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Bathrooms</label>
-            <input required type="number" min="0" name="bathrooms" value={formData.bathrooms} onChange={handleChange} 
+            <label htmlFor="property-bathrooms" className="block text-sm font-medium text-slate-700 mb-1">Bathrooms</label>
+            <input id="property-bathrooms" required type="number" min="0" name="bathrooms" value={formData.bathrooms} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Square Feet</label>
-            <input required type="number" min="0" name="squareFeet" value={formData.squareFeet} onChange={handleChange} 
+            <label htmlFor="property-square-feet" className="block text-sm font-medium text-slate-700 mb-1">Square Feet</label>
+            <input id="property-square-feet" required type="number" min="0" name="squareFeet" value={formData.squareFeet} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
         </div>

@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 import EditProperty from "./pages/EditProperty";
 import Favorites from "./pages/Favorites";
+import NotFound from "./pages/NotFound";
 
 const Navigation = () => {
   const { user, logout } = useAuth();
@@ -27,7 +28,7 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="p-4 bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
+    <nav aria-label="Main" className="p-4 bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link
           to="/"
@@ -117,6 +118,8 @@ const App: React.FC = () => {
               <Route path="/property/new" element={<CreateProperty />} />
               <Route path="/property/edit/:id" element={<EditProperty />} />
             </Route>
+
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
       </div>

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PropertyInput } from '../types/property';
 import { fetchPropertyById, updatePropertyListing } from '../services/propertyService';
+import { useToast } from '../components/ToastProvider';
 
 const EditProperty: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -45,7 +47,9 @@ const EditProperty: React.FC = () => {
           setError('Failed to load property details.');
         }
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -75,6 +79,7 @@ const EditProperty: React.FC = () => {
 
     try {
       await updatePropertyListing(id, formData);
+      showToast('Listing updated', 'success');
       navigate('/dashboard'); // Return to dashboard on success
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
@@ -88,53 +93,53 @@ const EditProperty: React.FC = () => {
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-slate-200 mt-8">
       <h1 className="text-3xl font-bold text-slate-900 mb-6">Edit Listing</h1>
       
-      {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">{error}</div>}
+      {error && <div role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-          <input required type="text" name="title" value={formData.title} onChange={handleChange} 
+          <label htmlFor="edit-title" className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+          <input id="edit-title" required type="text" name="title" value={formData.title} onChange={handleChange} 
             className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-          <textarea required name="description" value={formData.description} onChange={handleChange} rows={4}
+          <label htmlFor="edit-description" className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+          <textarea id="edit-description" required name="description" value={formData.description} onChange={handleChange} rows={4}
             className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Price ($)</label>
-            <input required type="number" min="0" name="price" value={formData.price} onChange={handleChange} 
+            <label htmlFor="edit-price" className="block text-sm font-medium text-slate-700 mb-1">Price ($)</label>
+            <input id="edit-price" required type="number" min="0" name="price" value={formData.price} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
-            <input required type="text" name="location" value={formData.location} onChange={handleChange} 
+            <label htmlFor="edit-location" className="block text-sm font-medium text-slate-700 mb-1">Location</label>
+            <input id="edit-location" required type="text" name="location" value={formData.location} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Bedrooms</label>
-            <input required type="number" min="0" name="bedrooms" value={formData.bedrooms} onChange={handleChange} 
+            <label htmlFor="edit-bedrooms" className="block text-sm font-medium text-slate-700 mb-1">Bedrooms</label>
+            <input id="edit-bedrooms" required type="number" min="0" name="bedrooms" value={formData.bedrooms} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Bathrooms</label>
-            <input required type="number" min="0" name="bathrooms" value={formData.bathrooms} onChange={handleChange} 
+            <label htmlFor="edit-bathrooms" className="block text-sm font-medium text-slate-700 mb-1">Bathrooms</label>
+            <input id="edit-bathrooms" required type="number" min="0" name="bathrooms" value={formData.bathrooms} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Square Feet</label>
-            <input required type="number" min="0" name="squareFeet" value={formData.squareFeet} onChange={handleChange} 
+            <label htmlFor="edit-square-feet" className="block text-sm font-medium text-slate-700 mb-1">Square Feet</label>
+            <input id="edit-square-feet" required type="number" min="0" name="squareFeet" value={formData.squareFeet} onChange={handleChange} 
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-            <select name="isAvailable" value={formData.isAvailable.toString()} onChange={handleChange}
+            <label htmlFor="edit-status" className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+            <select id="edit-status" name="isAvailable" value={formData.isAvailable.toString()} onChange={handleChange}
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
               <option value="true">Active</option>
               <option value="false">Hidden</option>

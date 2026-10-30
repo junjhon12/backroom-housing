@@ -1,20 +1,36 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { Property, PaginationMeta } from '../types/property';
 import { fetchProperties } from '../services/propertyService';
 import PropertyCard from '../components/PropertyCard';
 
 const Home: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryString = searchParams.toString();
+
+  // Filters live in the URL, so a search is shareable and the back button works.
+  const keywordParam = searchParams.get('keyword') ?? '';
+  const maxPriceParam = searchParams.get('maxPrice') ?? '';
+  const bedroomsParam = searchParams.get('bedrooms') ?? '';
+  const pageParam = Number(searchParams.get('page'));
+  const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+
   const [properties, setProperties] = useState<Property[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Search Form State
-  const [keyword, setKeyword] = useState<string>('');
-  const [maxPrice, setMaxPrice] = useState<string>('');
-  const [bedrooms, setBedrooms] = useState<string>('');
-  const [activeQuery, setActiveQuery] = useState<string>('');
-  const [page, setPage] = useState<number>(1);
+  // Draft form state, kept separate so typing doesn't trigger a request.
+  const [keyword, setKeyword] = useState<string>(keywordParam);
+  const [maxPrice, setMaxPrice] = useState<string>(maxPriceParam);
+  const [bedrooms, setBedrooms] = useState<string>(bedroomsParam);
+
+  // Re-sync the form when the URL changes (back/forward, Clear, a shared link).
+  useEffect(() => {
+    setKeyword(keywordParam);
+    setMaxPrice(maxPriceParam);
+    setBedrooms(bedroomsParam);
+  }, [keywordParam, maxPriceParam, bedroomsParam]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -22,12 +38,7 @@ const Home: React.FC = () => {
     const loadProperties = async () => {
       try {
         setLoading(true);
-
-        // Pagination is server-driven, so it has to travel with the filters.
-        const params = new URLSearchParams(activeQuery);
-        params.set('page', String(page));
-
-        const result = await fetchProperties(params.toString(), controller.signal);
+        const result = await fetchProperties(queryString, controller.signal);
         setProperties(result.properties);
         setMeta(result.meta);
         setError(null);
@@ -46,29 +57,40 @@ const Home: React.FC = () => {
     loadProperties();
 
     return () => controller.abort();
-  }, [activeQuery, page]);
+  }, [queryString]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Construct clean URL query string without empty parameters
+
+    // Construct a clean query string without empty parameters. Dropping `page`
+    // resets new criteria to the first page.
     const params = new URLSearchParams();
-    if (keyword.trim()) params.append('keyword', keyword.trim());
-    if (maxPrice) params.append('maxPrice', maxPrice);
-    if (bedrooms) params.append('bedrooms', bedrooms);
-    
-    // New criteria always start from the first page.
-    setPage(1);
-    setActiveQuery(params.toString());
+    if (keyword.trim()) params.set('keyword', keyword.trim());
+    if (maxPrice) params.set('maxPrice', maxPrice);
+    if (bedrooms) params.set('bedrooms', bedrooms);
+
+    setSearchParams(params);
   };
 
   const handleClear = () => {
-    setKeyword('');
-    setMaxPrice('');
-    setBedrooms('');
-    setPage(1);
-    setActiveQuery('');
+    setSearchParams({});
   };
+
+  const goToPage = (nextPage: number) => {
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      if (nextPage <= 1) {
+        next.delete('page');
+      } else {
+        next.set('page', String(nextPage));
+      }
+      return next;
+    });
+  };
+
+  const resultSummary = loading
+    ? 'Loading listings'
+    : `${meta?.total ?? properties.length} listings found`;
 
   return (
     <div className="space-y-8 mt-4">
@@ -80,38 +102,66 @@ const Home: React.FC = () => {
       {/* Search & Filter Bar */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
         <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
-          <input 
-            type="text" 
-            placeholder="Search by title or city..." 
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            className="grow p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-          />
-          <input 
-            type="number" 
-            placeholder="Max Price ($)" 
-            min="0"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            className="w-full md:w-40 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-          />
-          <select 
-            value={bedrooms}
-            onChange={(e) => setBedrooms(e.target.value)}
-            className="w-full md:w-40 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
-          >
-            <option value="">Any Beds</option>
-            <option value="1">1+ Bedrooms</option>
-            <option value="2">2+ Bedrooms</option>
-            <option value="3">3+ Bedrooms</option>
-            <option value="4">4+ Bedrooms</option>
-          </select>
+          <div className="grow">
+            <label htmlFor="search-keyword" className="sr-only">
+              Search by title or city
+            </label>
+            <input
+              id="search-keyword"
+              type="text"
+              placeholder="Search by title or city..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+          </div>
+
+          <div className="w-full md:w-40">
+            <label htmlFor="search-max-price" className="sr-only">
+              Maximum price
+            </label>
+            <input
+              id="search-max-price"
+              type="number"
+              placeholder="Max Price ($)"
+              min="0"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+          </div>
+
+          <div className="w-full md:w-40">
+            <label htmlFor="search-bedrooms" className="sr-only">
+              Minimum bedrooms
+            </label>
+            <select
+              id="search-bedrooms"
+              value={bedrooms}
+              onChange={(e) => setBedrooms(e.target.value)}
+              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+            >
+              <option value="">Any Beds</option>
+              <option value="1">1+ Bedrooms</option>
+              <option value="2">2+ Bedrooms</option>
+              <option value="3">3+ Bedrooms</option>
+              <option value="4">4+ Bedrooms</option>
+            </select>
+          </div>
+
           <div className="flex gap-2 w-full md:w-auto">
-            <button type="submit" className="grow md:grow-0 px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+            <button
+              type="submit"
+              className="grow md:grow-0 px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+            >
               Search
             </button>
-            {activeQuery && (
-              <button type="button" onClick={handleClear} className="px-4 py-2.5 bg-slate-100 text-slate-600 font-medium rounded-lg hover:bg-slate-200 transition-colors">
+            {queryString && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="px-4 py-2.5 bg-slate-100 text-slate-600 font-medium rounded-lg hover:bg-slate-200 transition-colors"
+              >
                 Clear
               </button>
             )}
@@ -119,11 +169,18 @@ const Home: React.FC = () => {
         </form>
       </div>
 
+      {/* Announced to screen readers without re-reading the whole grid */}
+      <p className="sr-only" role="status">
+        {resultSummary}
+      </p>
+
       {/* Results Grid */}
       {loading ? (
         <div className="text-center py-20 text-slate-500 text-lg animate-pulse">Searching properties...</div>
       ) : error ? (
-        <div className="text-center py-20 text-red-500 bg-red-50 rounded-lg border border-red-200">Error: {error}</div>
+        <div role="alert" className="text-center py-20 text-red-500 bg-red-50 rounded-lg border border-red-200">
+          Error: {error}
+        </div>
       ) : properties.length === 0 ? (
         <div className="text-center py-20 text-slate-500 border-2 border-dashed border-slate-300 rounded-xl">
           No properties found matching your criteria.
@@ -137,10 +194,10 @@ const Home: React.FC = () => {
           </div>
 
           {meta && meta.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 pt-2">
+            <nav aria-label="Search results pages" className="flex items-center justify-center gap-4 pt-2">
               <button
                 type="button"
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                onClick={() => goToPage(page - 1)}
                 disabled={page <= 1}
                 className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
@@ -151,13 +208,13 @@ const Home: React.FC = () => {
               </span>
               <button
                 type="button"
-                onClick={() => setPage((current) => Math.min(meta.totalPages, current + 1))}
+                onClick={() => goToPage(page + 1)}
                 disabled={page >= meta.totalPages}
                 className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
               </button>
-            </div>
+            </nav>
           )}
         </>
       )}

@@ -44,16 +44,18 @@ const Register: React.FC = () => {
       <h2 className="text-3xl font-bold text-slate-900 mb-6 text-center">Create an Account</h2>
       
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+        <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+          <label htmlFor="register-name" className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
           <input 
+            id="register-name"
             type="text" 
+            autoComplete="name"
             required 
             value={name} 
             onChange={(e) => setName(e.target.value)}
@@ -62,9 +64,11 @@ const Register: React.FC = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <label htmlFor="register-email" className="block text-sm font-medium text-slate-700 mb-1">Email</label>
           <input 
+            id="register-email"
             type="email" 
+            autoComplete="email"
             required 
             value={email} 
             onChange={(e) => setEmail(e.target.value)}
@@ -73,9 +77,11 @@ const Register: React.FC = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+          <label htmlFor="register-password" className="block text-sm font-medium text-slate-700 mb-1">Password</label>
           <input 
+            id="register-password"
             type="password" 
+            autoComplete="new-password"
             required 
             minLength={6}
             value={password} 
