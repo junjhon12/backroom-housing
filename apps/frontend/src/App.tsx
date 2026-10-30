@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,87 +11,140 @@ import PropertyDetails from "./pages/PropertyDetails";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CreateProperty from "./pages/CreateProperty";
-import Dashboard from "./pages/Dashboard"; // Import Dashboard
+import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 import EditProperty from "./pages/EditProperty";
 import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
+import { buttonStyles } from "./components/ui";
+
+const NAV_LINK =
+  "text-[10px] uppercase tracking-[0.18em] text-cream/80 hover:text-moss transition-colors";
 
 const Navigation = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
+    setMenuOpen(false);
     navigate("/login");
   };
 
+  const closeMenu = () => setMenuOpen(false);
+
+  const links: Array<{ to: string; label: string }> = [{ to: "/", label: "Explore" }];
+
+  if (user) {
+    links.push({ to: "/favorites", label: "Saved" });
+    if (user.role === "host" || user.role === "admin") {
+      links.push({ to: "/dashboard", label: "Dashboard" });
+    }
+  }
+
   return (
-    <nav aria-label="Main" className="p-4 bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
+    <nav aria-label="Main" className="sticky top-0 z-30 border-b border-ink bg-ink text-cream">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         <Link
           to="/"
-          className="text-xl font-bold text-indigo-600 tracking-tight"
+          onClick={closeMenu}
+          className="font-display text-xl uppercase leading-none tracking-wide"
         >
           Backroom
         </Link>
-        <div className="space-x-4 flex items-center">
-          <Link
-            to="/"
-            className="text-slate-600 hover:text-indigo-600 transition-colors font-medium"
-          >
-            Explore
-          </Link>
+
+        <div className="hidden items-center gap-6 md:flex">
+          {links.map((link) => (
+            <Link key={link.to} to={link.to} className={NAV_LINK}>
+              {link.label}
+            </Link>
+          ))}
 
           {user ? (
             <>
-              <Link
-                to="/favorites"
-                className="text-slate-600 hover:text-rose-600 transition-colors font-medium ml-4"
-              >
-                Saved
-              </Link>
-
-              {(user.role === "host" || user.role === "admin") && (
-                <Link
-                  to="/dashboard"
-                  className="text-slate-600 hover:text-indigo-600 transition-colors font-medium ml-4"
-                >
-                  Dashboard
-                </Link>
-              )}
-              <span className="text-sm text-slate-500 border-l border-slate-300 pl-4 hidden md:inline-block ml-4">
-                Welcome,{" "}
-                <span className="font-semibold text-slate-800">
-                  {user.name}
-                </span>
+              <span className="border-l border-cream/25 pl-6 text-[10px] uppercase tracking-[0.18em] text-cream/60">
+                {user.name}
               </span>
-              <button
-                onClick={handleLogout}
-                className="text-slate-600 hover:text-red-600 transition-colors font-medium ml-4"
-              >
+              <button type="button" onClick={handleLogout} className={NAV_LINK}>
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link
-                to="/login"
-                className="text-slate-600 hover:text-indigo-600 transition-colors font-medium border-l border-slate-300 pl-4"
-              >
-                Sign In
+              <Link to="/login" className={NAV_LINK}>
+                Sign in
               </Link>
               <Link
                 to="/register"
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors ml-4"
+                className={buttonStyles({
+                  variant: "secondary",
+                  size: "sm",
+                  className: "border-cream text-cream hover:bg-cream hover:text-ink",
+                })}
               >
-                Sign Up
+                Sign up
               </Link>
             </>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-menu"
+          className="border border-cream/40 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] md:hidden"
+        >
+          {menuOpen ? "Close" : "Menu"}
+        </button>
       </div>
+
+      {menuOpen && (
+        <div id="mobile-menu" className="border-t border-cream/20 px-4 py-4 md:hidden">
+          <div className="flex flex-col gap-4">
+            {links.map((link) => (
+              <Link key={link.to} to={link.to} onClick={closeMenu} className={NAV_LINK}>
+                {link.label}
+              </Link>
+            ))}
+
+            {user ? (
+              <>
+                <span className="border-t border-cream/20 pt-4 text-[10px] uppercase tracking-[0.18em] text-cream/60">
+                  {user.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className={`${NAV_LINK} text-left`}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={closeMenu} className={NAV_LINK}>
+                  Sign in
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={closeMenu}
+                  className={buttonStyles({
+                    variant: "secondary",
+                    size: "sm",
+                    className:
+                      "border-cream text-cream hover:bg-cream hover:text-ink self-start",
+                  })}
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
@@ -99,9 +152,9 @@ const Navigation = () => {
 const App: React.FC = () => {
   return (
     <Router>
-      <div className="min-h-screen bg-slate-50">
+      <div className="flex min-h-screen flex-col bg-paper">
         <Navigation />
-        <main className="max-w-7xl mx-auto p-4 py-8">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -122,6 +175,13 @@ const App: React.FC = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
+
+        <footer className="border-t border-ink/30">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-[10px] uppercase tracking-[0.18em] text-ink/60 md:flex-row md:justify-between">
+            <span>Backroom Housing — A subsidiary of nowhere</span>
+            <span>Est. 2026 / All units subject to availability</span>
+          </div>
+        </footer>
       </div>
     </Router>
   );

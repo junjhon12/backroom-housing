@@ -1,49 +1,70 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Property } from '../types/property';
+import { Badge, buttonStyles } from './ui';
 
 interface PropertyCardProps {
   property: Property;
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+  const reference = property._id.slice(-4).toUpperCase();
+
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-lg transition-shadow flex flex-col">
-      {/* New Image Container */}
-      <div className="h-48 w-full bg-slate-100 border-b border-slate-200 relative">
+    <article className="flex flex-col border border-ink bg-cream">
+      <div className="h-48 w-full border-b border-ink bg-paper-deep">
         {property.imageUrl ? (
-          <img src={property.imageUrl} alt={property.title} className="w-full h-full object-cover" />
+          <img
+            src={property.imageUrl}
+            alt={property.title}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
         ) : (
-          <div className="flex items-center justify-center w-full h-full text-slate-400 font-medium">
-            No Image Provided
+          <div className="flex h-full items-center justify-center text-[10px] uppercase tracking-[0.2em] text-ink/50">
+            No image on file
           </div>
         )}
       </div>
 
-      <div className="p-6 grow">
-        <div className="flex justify-between items-start mb-4">
-          <h2 className="text-xl font-bold text-slate-800">{property.title}</h2>
+      <div className="flex grow flex-col gap-4 p-5">
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-ink/60">
+            Ref {reference}
+          </span>
+          <Badge variant={property.isAvailable ? 'moss' : 'outline'}>
+            {property.isAvailable ? 'Available' : 'Unavailable'}
+          </Badge>
         </div>
-        <p className="text-slate-600 mb-4 line-clamp-2">{property.description}</p>
-        <div className="text-2xl font-bold text-indigo-600 mb-4">
-          ${property.price.toLocaleString()}
+
+        <h2 className="font-display text-2xl uppercase leading-none">{property.title}</h2>
+
+        <p className="line-clamp-2 text-sm leading-relaxed text-ink/70">
+          {property.description}
+        </p>
+
+        <div className="mt-auto flex items-end justify-between gap-3 border-t border-ink/20 pt-4">
+          <div>
+            <p className="font-display text-2xl leading-none">
+              ${property.price.toLocaleString()}
+            </p>
+            <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-ink/60">
+              {property.bedrooms} bd / {property.bathrooms} ba
+            </p>
+          </div>
+          <Link
+            to={`/property/${property._id}`}
+            className={buttonStyles({ variant: 'secondary', size: 'sm' })}
+          >
+            View
+          </Link>
         </div>
-        <div className="flex items-center space-x-4 text-sm text-slate-500 mb-4">
-          <span>{property.bedrooms} Beds</span>
-          <span>&bull;</span>
-          <span>{property.bathrooms} Baths</span>
-        </div>
+
+        <p className="text-[10px] uppercase tracking-[0.18em] text-ink/60">
+          {property.location}
+        </p>
       </div>
-      <div className="p-6 bg-slate-50 border-t border-slate-100 mt-auto flex justify-between items-center">
-        <span className="text-sm text-slate-500 truncate mr-4">📍 {property.location}</span>
-        <Link 
-          to={`/property/${property._id}`} 
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors whitespace-nowrap"
-        >
-          View Details
-        </Link>
-      </div>
-    </div>
+    </article>
   );
 };
 

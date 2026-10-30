@@ -4,6 +4,7 @@ import type { Property } from '../types/property';
 import { fetchMyProperties, deletePropertyListing } from '../services/propertyService';
 import { useConfirm } from '../components/ConfirmProvider';
 import { useToast } from '../components/ToastProvider';
+import { Badge, Button, buttonStyles, EmptyState, Skeleton } from '../components/ui';
 
 const Dashboard: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -44,62 +45,110 @@ const Dashboard: React.FC = () => {
     try {
       await deletePropertyListing(id);
       // Optimistic UI Update: Filter out the deleted property without reloading
-      setProperties(prev => prev.filter(p => p._id !== id));
+      setProperties((prev) => prev.filter((p) => p._id !== id));
       showToast('Listing deleted', 'success');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to delete listing', 'error');
     }
   };
 
-  if (loading) return <div className="py-20 text-center animate-pulse text-slate-500">Loading dashboard...</div>;
-  if (error) return <div role="alert" className="py-20 text-center text-red-500">{error}</div>;
-
   return (
-    <div className="space-y-6 mt-4">
-      <div className="flex justify-between items-center mb-8">
+    <div className="space-y-8">
+      <header className="flex flex-col gap-5 border-b border-ink pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Host Dashboard</h1>
-          <p className="text-slate-600 mt-1">Manage your Backroom housing listings.</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">004 — Host console</p>
+          <h1 className="mt-2 font-display text-4xl uppercase leading-none md:text-5xl">
+            Your listings
+          </h1>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink/70">
+            Manage the units you have filed with Backroom Housing.
+          </p>
         </div>
-        <Link to="/property/new" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-          + New Listing
-        </Link>
-      </div>
 
-      {properties.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-xl border border-slate-200">
-          <p className="text-slate-500 mb-4">You haven't posted any listings yet.</p>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {properties.map(property => (
-            <div key={property._id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
-              <div>
-                <Link to={`/property/${property._id}`} className="text-xl font-bold text-slate-800 hover:text-indigo-600 transition-colors">
-                  {property.title}
-                </Link>
-                <div className="text-sm text-slate-500 mt-1">
-                  ${property.price} • {property.location} • {property.isAvailable ? 'Active' : 'Hidden'}
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Link 
-                  to={`/property/edit/${property._id}`}
-                  className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
-                >
-                  Edit
-                </Link>
-                <button 
-                  type="button"
-                  onClick={() => handleDelete(property._id)}
-                  className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
+        <Link to="/property/new" className={buttonStyles()}>
+          New listing
+        </Link>
+      </header>
+
+      {loading ? (
+        <div className="border border-ink bg-cream">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              key={index}
+              className="space-y-3 border-b border-ink/20 p-5 last:border-b-0"
+            >
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-6 w-2/3" />
+              <Skeleton className="h-3 w-1/2" />
             </div>
           ))}
         </div>
+      ) : error ? (
+        <div
+          role="alert"
+          className="border border-magenta bg-magenta/10 px-5 py-4 text-sm text-magenta"
+        >
+          {error}
+        </div>
+      ) : properties.length === 0 ? (
+        <EmptyState
+          title="No listings on file"
+          description="You have not filed any units yet. Create your first listing to make it available for review."
+          action={
+            <Link to="/property/new" className={buttonStyles({ variant: 'secondary' })}>
+              Create a listing
+            </Link>
+          }
+        />
+      ) : (
+        <ul className="border border-ink bg-cream">
+          {properties.map((property) => (
+            <li
+              key={property._id}
+              className="flex flex-col gap-4 border-b border-ink/20 p-5 last:border-b-0 md:flex-row md:items-center md:justify-between"
+            >
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-[10px] uppercase tracking-[0.18em] text-ink/60">
+                    Ref {property._id.slice(-4).toUpperCase()}
+                  </span>
+                  <Badge variant={property.isAvailable ? 'moss' : 'outline'}>
+                    {property.isAvailable ? 'Active' : 'Hidden'}
+                  </Badge>
+                </div>
+
+                <Link
+                  to={`/property/${property._id}`}
+                  className="mt-2 block font-display text-2xl uppercase leading-none hover:text-magenta"
+                >
+                  {property.title}
+                </Link>
+
+                <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-ink/60">
+                  ${property.price.toLocaleString()} · {property.location} ·{' '}
+                  {property.bedrooms} bd / {property.bathrooms} ba
+                </p>
+              </div>
+
+              <div className="flex shrink-0 gap-2">
+                <Link
+                  to={`/property/edit/${property._id}`}
+                  className={buttonStyles({ variant: 'secondary', size: 'sm' })}
+                >
+                  Edit
+                </Link>
+                <Button
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleDelete(property._id)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

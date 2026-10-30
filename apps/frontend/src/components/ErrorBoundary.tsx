@@ -1,4 +1,9 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react';
+import {
+  Component,
+  type ErrorInfo,
+  type ReactNode,
+} from 'react';
+import { buttonStyles } from './ui';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -26,16 +31,21 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-          <div className="w-full max-w-md text-center bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">Something went wrong</h1>
-            <p className="text-slate-600 mb-6">
+        <div className="flex min-h-screen items-center justify-center bg-paper p-6">
+          <div className="w-full max-w-md border border-ink bg-cream p-8">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">
+              System fault
+            </p>
+            <h1 className="mt-3 font-display text-4xl uppercase leading-none">
+              Something went wrong
+            </h1>
+            <p className="mt-4 text-sm leading-relaxed text-ink/70">
               An unexpected error broke this page. Reloading usually fixes it.
             </p>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+              className={`${buttonStyles()} mt-8`}
             >
               Reload page
             </button>

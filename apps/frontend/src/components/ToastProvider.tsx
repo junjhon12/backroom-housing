@@ -23,9 +23,9 @@ interface ToastContextValue {
 const DISMISS_AFTER_MS = 4000;
 
 const VARIANT_CLASSES: Record<ToastVariant, string> = {
-  success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-  error: 'bg-red-50 border-red-200 text-red-700',
-  info: 'bg-white border-slate-200 text-slate-700',
+  success: 'border-l-moss',
+  error: 'border-l-magenta',
+  info: 'border-l-ink',
 };
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
@@ -79,14 +79,14 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           <div
             key={toast.id}
             role="status"
-            className={`flex items-start justify-between gap-4 rounded-lg border px-4 py-3 text-sm shadow-md ${VARIANT_CLASSES[toast.variant]}`}
+            className={`flex items-start justify-between gap-4 border border-ink border-l-4 bg-cream px-4 py-3 text-sm shadow-hard ${VARIANT_CLASSES[toast.variant]}`}
           >
-            <span>{toast.message}</span>
+            <span className="leading-relaxed">{toast.message}</span>
             <button
               type="button"
               onClick={() => dismiss(toast.id)}
               aria-label="Dismiss notification"
-              className="shrink-0 text-lg leading-none opacity-60 hover:opacity-100"
+              className="shrink-0 text-base leading-none text-ink/50 transition-colors hover:text-ink"
             >
               &times;
             </button>

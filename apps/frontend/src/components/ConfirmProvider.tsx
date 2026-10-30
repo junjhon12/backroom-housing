@@ -7,6 +7,7 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { buttonStyles } from './ui';
 
 interface ConfirmOptions {
   title: string;
@@ -63,7 +64,7 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
       {request && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-slate-900/50"
+            className="absolute inset-0 bg-ink/70"
             onClick={() => respond(false)}
             aria-hidden="true"
           />
@@ -72,18 +73,23 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
+            className="relative w-full max-w-md border border-ink bg-cream p-6 shadow-hard"
           >
-            <h2 id={titleId} className="text-xl font-bold text-slate-900 mb-2">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">
+              Confirm action
+            </p>
+            <h2 id={titleId} className="mt-2 font-display text-3xl uppercase leading-none">
               {request.options.title}
             </h2>
-            <p className="text-slate-600 mb-6">{request.options.message}</p>
+            <p className="mt-4 text-sm leading-relaxed text-ink/70">
+              {request.options.message}
+            </p>
 
-            <div className="flex justify-end gap-3">
+            <div className="mt-8 flex flex-col gap-3 border-t border-ink/20 pt-5 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => respond(false)}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                className={buttonStyles({ variant: 'secondary' })}
               >
                 {request.options.cancelLabel ?? 'Cancel'}
               </button>
@@ -91,11 +97,9 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
                 type="button"
                 autoFocus
                 onClick={() => respond(true)}
-                className={`px-4 py-2 text-sm font-semibold rounded-lg text-white transition-colors ${
-                  request.options.destructive
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-indigo-600 hover:bg-indigo-700'
-                }`}
+                className={buttonStyles({
+                  variant: request.options.destructive ? 'danger' : 'primary',
+                })}
               >
                 {request.options.confirmLabel ?? 'Confirm'}
               </button>

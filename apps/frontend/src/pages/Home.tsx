@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import type { Property, PaginationMeta } from '../types/property';
 import { fetchProperties } from '../services/propertyService';
 import PropertyCard from '../components/PropertyCard';
+import { Button, EmptyState, Field, Input, Select, Skeleton } from '../components/ui';
 
 const Home: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -93,131 +94,161 @@ const Home: React.FC = () => {
     : `${meta?.total ?? properties.length} listings found`;
 
   return (
-    <div className="space-y-8 mt-4">
-      <div className="flex flex-col">
-        <h1 className="text-3xl font-bold text-slate-900">Explore Listings</h1>
-        <p className="text-slate-600 mt-2">Find your next space in the Backroom ecosystem.</p>
-      </div>
+    <div className="space-y-10">
+      <header className="border-b border-ink pb-8">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">001 — Availability</p>
+        <h1 className="mt-3 font-display text-6xl uppercase leading-[0.85] md:text-8xl">
+          Stable.
+          <br />
+          Quiet.
+          <br />
+          Yours.
+        </h1>
+        <p className="mt-5 max-w-xl text-sm leading-relaxed text-ink/70">
+          Find your next space in the Backroom ecosystem. Every listing is verified, filed,
+          and available for immediate review.
+        </p>
+      </header>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
-          <div className="grow">
-            <label htmlFor="search-keyword" className="sr-only">
-              Search by title or city
-            </label>
-            <input
+      <section className="border border-ink bg-cream p-5">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">Filter listings</p>
+
+        <form
+          onSubmit={handleSearch}
+          className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr_1fr_auto] md:items-end"
+        >
+          <Field label="Keyword" htmlFor="search-keyword">
+            <Input
               id="search-keyword"
               type="text"
-              placeholder="Search by title or city..."
+              placeholder="Title, city, description"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
             />
-          </div>
+          </Field>
 
-          <div className="w-full md:w-40">
-            <label htmlFor="search-max-price" className="sr-only">
-              Maximum price
-            </label>
-            <input
+          <Field label="Max price ($)" htmlFor="search-max-price">
+            <Input
               id="search-max-price"
               type="number"
-              placeholder="Max Price ($)"
               min="0"
+              placeholder="—"
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
             />
-          </div>
+          </Field>
 
-          <div className="w-full md:w-40">
-            <label htmlFor="search-bedrooms" className="sr-only">
-              Minimum bedrooms
-            </label>
-            <select
+          <Field label="Bedrooms" htmlFor="search-bedrooms">
+            <Select
               id="search-bedrooms"
               value={bedrooms}
               onChange={(e) => setBedrooms(e.target.value)}
-              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
             >
-              <option value="">Any Beds</option>
-              <option value="1">1+ Bedrooms</option>
-              <option value="2">2+ Bedrooms</option>
-              <option value="3">3+ Bedrooms</option>
-              <option value="4">4+ Bedrooms</option>
-            </select>
-          </div>
+              <option value="">Any</option>
+              <option value="1">1+</option>
+              <option value="2">2+</option>
+              <option value="3">3+</option>
+              <option value="4">4+</option>
+            </Select>
+          </Field>
 
-          <div className="flex gap-2 w-full md:w-auto">
-            <button
-              type="submit"
-              className="grow md:grow-0 px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Search
-            </button>
+          <div className="flex gap-2">
+            <Button type="submit">Search</Button>
             {queryString && (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="px-4 py-2.5 bg-slate-100 text-slate-600 font-medium rounded-lg hover:bg-slate-200 transition-colors"
-              >
+              <Button type="button" variant="secondary" onClick={handleClear}>
                 Clear
-              </button>
+              </Button>
             )}
           </div>
         </form>
-      </div>
+      </section>
 
       {/* Announced to screen readers without re-reading the whole grid */}
       <p className="sr-only" role="status">
         {resultSummary}
       </p>
 
-      {/* Results Grid */}
-      {loading ? (
-        <div className="text-center py-20 text-slate-500 text-lg animate-pulse">Searching properties...</div>
-      ) : error ? (
-        <div role="alert" className="text-center py-20 text-red-500 bg-red-50 rounded-lg border border-red-200">
-          Error: {error}
+      <section className="space-y-6">
+        <div className="flex items-baseline justify-between border-b border-ink/30 pb-2">
+          <h2 className="font-display text-2xl uppercase leading-none">Listings</h2>
+          <span className="text-[10px] uppercase tracking-[0.18em] text-ink/60">
+            {meta?.total ?? 0} results
+          </span>
         </div>
-      ) : properties.length === 0 ? (
-        <div className="text-center py-20 text-slate-500 border-2 border-dashed border-slate-300 rounded-xl">
-          No properties found matching your criteria.
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {properties.map((property) => (
-              <PropertyCard key={property._id} property={property} />
+
+        {loading ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="border border-ink bg-cream">
+                <Skeleton className="h-48 w-full" />
+                <div className="space-y-3 p-5">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-2/3" />
+                </div>
+              </div>
             ))}
           </div>
+        ) : error ? (
+          <div
+            role="alert"
+            className="border border-magenta bg-magenta/10 px-5 py-4 text-sm text-magenta"
+          >
+            {error}
+          </div>
+        ) : properties.length === 0 ? (
+          <EmptyState
+            title="No listings on file"
+            description="Nothing matches those criteria. Widen the price range or clear the filters."
+            action={
+              queryString ? (
+                <Button type="button" variant="secondary" onClick={handleClear}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {properties.map((property) => (
+                <PropertyCard key={property._id} property={property} />
+              ))}
+            </div>
 
-          {meta && meta.totalPages > 1 && (
-            <nav aria-label="Search results pages" className="flex items-center justify-center gap-4 pt-2">
-              <button
-                type="button"
-                onClick={() => goToPage(page - 1)}
-                disabled={page <= 1}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            {meta && meta.totalPages > 1 && (
+              <nav
+                aria-label="Search results pages"
+                className="flex items-center justify-center gap-4 pt-2"
               >
-                Previous
-              </button>
-              <span className="text-sm text-slate-600">
-                Page {meta.page} of {meta.totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => goToPage(page + 1)}
-                disabled={page >= meta.totalPages}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Next
-              </button>
-            </nav>
-          )}
-        </>
-      )}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page <= 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-[10px] uppercase tracking-[0.18em] text-ink/60">
+                  Page {meta.page} / {meta.totalPages}
+                </span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page >= meta.totalPages}
+                >
+                  Next
+                </Button>
+              </nav>
+            )}
+          </>
+        )}
+      </section>
     </div>
   );
 };

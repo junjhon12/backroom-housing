@@ -3,32 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import type { PropertyInput } from '../types/property';
 import { createPropertyListing, uploadImage } from '../services/propertyService';
 import { useToast } from '../components/ToastProvider';
+import PropertyForm from '../components/PropertyForm';
+import { Card, Field } from '../components/ui';
+
+const EMPTY_PROPERTY: PropertyInput = {
+  title: '',
+  description: '',
+  price: 0,
+  location: '',
+  bedrooms: 0,
+  bathrooms: 0,
+  squareFeet: 0,
+  isAvailable: true,
+};
 
 const CreateProperty: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null); 
-
-  const [formData, setFormData] = useState<PropertyInput>({
-    title: '',
-    description: '',
-    price: 0,
-    location: '',
-    bedrooms: 0,
-    bathrooms: 0,
-    squareFeet: 0,
-    isAvailable: true,
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'number' ? Number(value) : value
-    }));
-  };
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -36,105 +30,70 @@ const CreateProperty: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (values: PropertyInput) => {
     setError(null);
     setIsSubmitting(true);
 
     try {
-      let finalImageUrl = undefined;
-      
+      let imageUrl: string | undefined;
+
       // Pass 1: Upload the image if one was selected
       if (imageFile) {
-        finalImageUrl = await uploadImage(imageFile);
+        imageUrl = await uploadImage(imageFile);
       }
 
       // Pass 2: Submit the JSON payload with the new URL
-      const payload = { ...formData, ...(finalImageUrl && { imageUrl: finalImageUrl }) };
-      const newProperty = await createPropertyListing(payload);
-      
+      const newProperty = await createPropertyListing({
+        ...values,
+        ...(imageUrl && { imageUrl }),
+      });
+
       showToast('Listing published', 'success');
       navigate(`/property/${newProperty._id}`);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unexpected error occurred.');
-      }
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-slate-200 mt-8">
-      <h1 className="text-3xl font-bold text-slate-900 mb-6">Post a New Listing</h1>
-      
-      {error && <div role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">{error}</div>}
+    <Card className="mx-auto mt-4 w-full max-w-2xl p-8">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">003 — New listing</p>
+      <h1 className="mt-2 font-display text-4xl uppercase leading-none">Post a listing</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="property-image" className="block text-sm font-medium text-slate-700 mb-1">Property Image</label>
-          <input 
+      {error && (
+        <div role="alert" className="mt-6 border border-magenta bg-magenta/10 px-4 py-3 text-sm text-magenta">
+          {error}
+        </div>
+      )}
+
+      <div className="mt-6">
+        <Field
+          label="Property image"
+          htmlFor="property-image"
+          hint="JPG, PNG or WebP. Maximum 5 MB."
+        >
+          <input
             id="property-image"
-            type="file" 
+            type="file"
             accept="image/*"
             onChange={handleImageChange}
-            className="w-full p-2 border border-slate-300 rounded-lg text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all"
+            className="block w-full border border-ink bg-cream p-2 text-xs text-ink/70 file:mr-4 file:border-0 file:bg-ink file:px-3 file:py-2 file:text-[10px] file:uppercase file:tracking-[0.14em] file:text-cream hover:file:bg-magenta"
           />
-        </div>
+        </Field>
+      </div>
 
-        <div>
-          <label htmlFor="property-title" className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-          <input id="property-title" required type="text" name="title" value={formData.title} onChange={handleChange} 
-            className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-        </div>
-
-        <div>
-          <label htmlFor="property-description" className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-          <textarea id="property-description" required name="description" value={formData.description} onChange={handleChange} rows={4}
-            className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="property-price" className="block text-sm font-medium text-slate-700 mb-1">Price ($)</label>
-            <input id="property-price" required type="number" min="0" name="price" value={formData.price} onChange={handleChange} 
-              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-          </div>
-          <div>
-            <label htmlFor="property-location" className="block text-sm font-medium text-slate-700 mb-1">Location</label>
-            <input id="property-location" required type="text" name="location" value={formData.location} onChange={handleChange} 
-              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label htmlFor="property-bedrooms" className="block text-sm font-medium text-slate-700 mb-1">Bedrooms</label>
-            <input id="property-bedrooms" required type="number" min="0" name="bedrooms" value={formData.bedrooms} onChange={handleChange} 
-              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-          </div>
-          <div>
-            <label htmlFor="property-bathrooms" className="block text-sm font-medium text-slate-700 mb-1">Bathrooms</label>
-            <input id="property-bathrooms" required type="number" min="0" name="bathrooms" value={formData.bathrooms} onChange={handleChange} 
-              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-          </div>
-          <div>
-            <label htmlFor="property-square-feet" className="block text-sm font-medium text-slate-700 mb-1">Square Feet</label>
-            <input id="property-square-feet" required type="number" min="0" name="squareFeet" value={formData.squareFeet} onChange={handleChange} 
-              className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-          </div>
-        </div>
-
-        <button 
-          type="submit" 
-          disabled={isSubmitting}
-          className={`w-full py-3 rounded-lg text-white font-semibold transition-all ${isSubmitting ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'}`}
-        >
-          {isSubmitting ? 'Publishing...' : 'Publish Listing'}
-        </button>
-      </form>
-    </div>
+      <div className="mt-6 border-t border-ink/20 pt-6">
+        <PropertyForm
+          initialValues={EMPTY_PROPERTY}
+          submitLabel="Publish listing"
+          submittingLabel="Publishing…"
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmit}
+          onCancel={() => navigate('/dashboard')}
+        />
+      </div>
+    </Card>
   );
 };
 

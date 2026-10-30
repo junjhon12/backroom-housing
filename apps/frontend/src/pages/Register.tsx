@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { Button, Card, Field, Input } from '../components/ui';
 
 const Register: React.FC = () => {
   const [name, setName] = useState<string>('');
@@ -29,80 +30,73 @@ const Register: React.FC = () => {
       login(data);
       navigate('/');
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unexpected error occurred.');
-      }
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-      <h2 className="text-3xl font-bold text-slate-900 mb-6 text-center">Create an Account</h2>
-      
+    <Card className="mx-auto mt-8 w-full max-w-md p-8">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">002 — Application</p>
+      <h1 className="mt-2 font-display text-4xl uppercase leading-none">Apply for residency</h1>
+
       {error && (
-        <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+        <div role="alert" className="mt-6 border border-magenta bg-magenta/10 px-4 py-3 text-sm text-magenta">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="register-name" className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-          <input 
+      <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        <Field label="Full name" htmlFor="register-name">
+          <Input
             id="register-name"
-            type="text" 
+            type="text"
             autoComplete="name"
-            required 
-            value={name} 
+            required
+            value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
             placeholder="John Doe"
           />
-        </div>
-        <div>
-          <label htmlFor="register-email" className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-          <input 
+        </Field>
+
+        <Field label="Email" htmlFor="register-email">
+          <Input
             id="register-email"
-            type="email" 
+            type="email"
             autoComplete="email"
-            required 
-            value={email} 
+            required
+            value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
             placeholder="you@example.com"
           />
-        </div>
-        <div>
-          <label htmlFor="register-password" className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-          <input 
+        </Field>
+
+        <Field label="Password" htmlFor="register-password" hint="Minimum 6 characters.">
+          <Input
             id="register-password"
-            type="password" 
+            type="password"
             autoComplete="new-password"
-            required 
+            required
             minLength={6}
-            value={password} 
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-            placeholder="At least 6 characters"
+            placeholder="••••••••"
           />
-        </div>
-        <button 
-          type="submit" 
-          disabled={isLoading}
-          className={`w-full py-2.5 rounded-lg text-white font-semibold transition-all ${isLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
-        >
-          {isLoading ? 'Creating account...' : 'Sign Up'}
-        </button>
+        </Field>
+
+        <Button type="submit" disabled={isLoading} className="w-full">
+          {isLoading ? 'Submitting…' : 'Submit application'}
+        </Button>
       </form>
-      
-      <p className="mt-6 text-center text-sm text-slate-600">
-        Already have an account? <Link to="/login" className="text-indigo-600 hover:underline font-medium">Sign in</Link>
+
+      <p className="mt-6 border-t border-ink/20 pt-4 text-xs text-ink/70">
+        Already on file?{' '}
+        <Link to="/login" className="underline underline-offset-4 hover:text-magenta">
+          Sign in
+        </Link>
       </p>
-    </div>
+    </Card>
   );
 };
 

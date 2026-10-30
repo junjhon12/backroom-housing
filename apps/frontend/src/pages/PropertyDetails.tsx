@@ -5,6 +5,7 @@ import { fetchPropertyById } from '../services/propertyService';
 import { fetchFavorites, toggleFavoriteListing } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ToastProvider';
+import { Badge, Button, buttonStyles, Card, Skeleton } from '../components/ui';
 
 type PropertyParams = {
   id: string;
@@ -14,11 +15,11 @@ const PropertyDetails: React.FC = () => {
   const { id } = useParams<PropertyParams>();
   const { user } = useAuth();
   const { showToast } = useToast();
-  
+
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Favorites State
   const [isFavorited, setIsFavorited] = useState<boolean>(false);
   const [isToggling, setIsToggling] = useState<boolean>(false);
@@ -32,7 +33,7 @@ const PropertyDetails: React.FC = () => {
         setLoading(true);
         // Execute both fetches concurrently for performance
         const propertyPromise = fetchPropertyById(id, controller.signal);
-        
+
         // Only fetch favorites if the user is logged in
         let favoritesPromise = Promise.resolve([] as Property[]);
         if (user) {
@@ -40,19 +41,21 @@ const PropertyDetails: React.FC = () => {
         }
 
         const [fetchedProperty, userFavorites] = await Promise.all([propertyPromise, favoritesPromise]);
-        
+
         setProperty(fetchedProperty);
-        
+
         // Determine if this property is already in the user's favorites
-        if (user && userFavorites.some(fav => fav._id === id)) {
+        if (user && userFavorites.some((fav) => fav._id === id)) {
           setIsFavorited(true);
         }
-        
+
         setError(null);
       } catch (err) {
         if (err instanceof Error && err.name !== 'AbortError') setError(err.message);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -62,9 +65,9 @@ const PropertyDetails: React.FC = () => {
 
   const handleToggleFavorite = async () => {
     if (!id || !user || isToggling) return;
-    
+
     // Optimistic UI update
-    setIsFavorited(prev => !prev);
+    setIsFavorited((prev) => !prev);
     setIsToggling(true);
 
     try {
@@ -72,75 +75,146 @@ const PropertyDetails: React.FC = () => {
       showToast(isFavorited ? 'Removed from saved listings' : 'Saved to favorites', 'success');
     } catch (err) {
       // Revert state on failure
-      setIsFavorited(prev => !prev);
+      setIsFavorited((prev) => !prev);
       showToast(err instanceof Error ? err.message : 'Failed to save property', 'error');
     } finally {
       setIsToggling(false);
     }
   };
 
-  if (loading) return <div className="py-20 text-center animate-pulse text-slate-500">Loading details...</div>;
-  if (error) return <div className="py-20 text-center text-red-500">{error}</div>;
-  if (!property) return <div className="py-20 text-center">Property not found.</div>;
+  if (loading) {
+    return (
+      <Card className="mx-auto w-full max-w-4xl">
+        <Skeleton className="h-72 w-full border-b border-ink" />
+        <div className="space-y-4 p-8">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-10 w-2/3" />
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-5/6" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        role="alert"
+        className="mx-auto max-w-xl border border-magenta bg-magenta/10 px-5 py-4 text-sm text-magenta"
+      >
+        {error}
+      </div>
+    );
+  }
+
+  if (!property) {
+    return (
+      <div className="mx-auto max-w-xl border border-ink bg-cream px-6 py-16 text-center">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">Not on file</p>
+        <p className="mt-3 font-display text-3xl uppercase leading-none">Property not found</p>
+        <Link to="/" className={`${buttonStyles({ variant: 'secondary' })} mt-6`}>
+          Back to listings
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-8">
-      {property.imageUrl && (
-        <div className="w-full h-96 bg-slate-100 border-b border-slate-200">
-          <img src={property.imageUrl} alt={property.title} className="w-full h-full object-cover" />
-        </div>
-      )}
+    <Card className="mx-auto w-full max-w-4xl">
+      <div className="h-72 w-full border-b border-ink bg-paper-deep md:h-96">
+        {property.imageUrl ? (
+          <img
+            src={property.imageUrl}
+            alt={property.title}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-[10px] uppercase tracking-[0.2em] text-ink/50">
+            No image on file
+          </div>
+        )}
+      </div>
 
-      <div className="p-8">
-        <Link to="/" className="text-indigo-600 hover:underline mb-6 inline-block font-medium">&larr; Back to Listings</Link>
-        
-        <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
+      <div className="p-6 md:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            to="/"
+            className="text-[10px] uppercase tracking-[0.18em] text-ink/60 underline underline-offset-4 hover:text-ink"
+          >
+            &larr; Back to listings
+          </Link>
+          <span className="text-[10px] uppercase tracking-[0.18em] text-ink/60">
+            Ref {property._id.slice(-4).toUpperCase()}
+          </span>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-5 border-b border-ink/20 pb-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900">{property.title}</h1>
-            <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-semibold mt-3 inline-block">
+            <Badge variant={property.isAvailable ? 'moss' : 'outline'}>
               {property.isAvailable ? 'Available' : 'Unavailable'}
-            </span>
+            </Badge>
+            <h1 className="mt-3 font-display text-4xl uppercase leading-[0.9] md:text-5xl">
+              {property.title}
+            </h1>
+            <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-ink/60">
+              {property.location}
+            </p>
           </div>
 
-          {/* Conditional Favorite Button for Authenticated Users */}
-          {user && (
-            <button 
+          {/* Favorite action: authenticated users can toggle, guests are pointed at sign-in */}
+          {user ? (
+            <Button
+              type="button"
+              variant={isFavorited ? 'danger' : 'secondary'}
               onClick={handleToggleFavorite}
               disabled={isToggling}
               aria-pressed={isFavorited}
-              className={`px-6 py-2.5 rounded-lg font-bold transition-all border-2 ${
-                isFavorited 
-                  ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100' 
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-600 hover:text-indigo-600'
-              }`}
+              className="shrink-0"
             >
-              {isFavorited ? '♥ Saved' : '♡ Save to Favorites'}
-            </button>
+              {isFavorited ? 'Saved' : 'Save listing'}
+            </Button>
+          ) : (
+            <Link
+              to="/login"
+              state={{ from: `/property/${property._id}` }}
+              className={buttonStyles({ variant: 'secondary', className: 'shrink-0' })}
+            >
+              Sign in to save
+            </Link>
           )}
         </div>
-        
-        <p className="text-slate-600 text-lg mb-8 leading-relaxed whitespace-pre-wrap">{property.description}</p>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
-          <div>
-            <p className="text-sm text-slate-500 font-medium">Price</p>
-            <p className="text-2xl font-bold text-indigo-600">${property.price.toLocaleString()}</p>
+
+        <p className="mt-6 max-w-2xl whitespace-pre-wrap text-sm leading-relaxed text-ink/80">
+          {property.description}
+        </p>
+
+        <dl className="mt-8 grid grid-cols-2 gap-px border border-ink/20 bg-ink/20 md:grid-cols-4">
+          <div className="bg-cream p-4">
+            <dt className="text-[10px] uppercase tracking-[0.18em] text-ink/60">Price</dt>
+            <dd className="mt-2 font-display text-2xl leading-none">
+              ${property.price.toLocaleString()}
+            </dd>
           </div>
-          <div>
-            <p className="text-sm text-slate-500 font-medium">Location</p>
-            <p className="text-lg font-semibold text-slate-800">{property.location}</p>
+          <div className="bg-cream p-4">
+            <dt className="text-[10px] uppercase tracking-[0.18em] text-ink/60">Location</dt>
+            <dd className="mt-2 text-sm leading-relaxed">{property.location}</dd>
           </div>
-          <div>
-            <p className="text-sm text-slate-500 font-medium">Layout</p>
-            <p className="text-lg font-semibold text-slate-800">{property.bedrooms} Bed, {property.bathrooms} Bath</p>
+          <div className="bg-cream p-4">
+            <dt className="text-[10px] uppercase tracking-[0.18em] text-ink/60">Layout</dt>
+            <dd className="mt-2 text-sm leading-relaxed">
+              {property.bedrooms} bd / {property.bathrooms} ba
+            </dd>
           </div>
-          <div>
-            <p className="text-sm text-slate-500 font-medium">Area</p>
-            <p className="text-lg font-semibold text-slate-800">{property.squareFeet.toLocaleString()} sqft</p>
+          <div className="bg-cream p-4">
+            <dt className="text-[10px] uppercase tracking-[0.18em] text-ink/60">Area</dt>
+            <dd className="mt-2 text-sm leading-relaxed">
+              {property.squareFeet.toLocaleString()} sq ft
+            </dd>
           </div>
-        </div>
+        </dl>
       </div>
-    </div>
+    </Card>
   );
 };
 
