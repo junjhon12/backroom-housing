@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { UPLOADS_DIR } from '../config/paths';
+import { AppError } from '../utils/AppError';
 
 // Ensure the destination exists: a fresh clone has no uploads/ directory and
 // multer does not create it, which made the first upload fail with ENOENT.
@@ -35,7 +36,8 @@ const checkFileType = (file: Express.Multer.File, cb: multer.FileFilterCallback)
   if (extname && mimetype) {
     return cb(null, true);
   } else {
-    cb(new Error('Images only (jpg, jpeg, png, webp)!'));
+    // Must be an AppError so the central handler returns 400, not 500.
+    cb(new AppError(400, 'Images only (jpg, jpeg, png, webp)!'));
   }
 };
 

@@ -1,5 +1,7 @@
 # Backroom Housing Registry
 
+[![CI](https://github.com/junjhon12/backroom-housing/actions/workflows/ci.yml/badge.svg)](https://github.com/junjhon12/backroom-housing/actions/workflows/ci.yml)
+
 A full-stack housing platform for the Backrooms — a fictional residential registry where renters browse surveyed units, save files, and hosts manage listings. Built as a production-shaped MERN application: typed end to end, authenticated, indexed, validated, and fully seeded.
 
 > **Live demo:** _add deployment URL here_
@@ -176,6 +178,7 @@ Run from the repository root:
 | `npm run build` | Type-check and build both workspaces |
 | `npm run typecheck` | Type-check without emitting |
 | `npm run lint` | Lint the frontend with Oxlint |
+| `npm test` | Run backend and frontend test suites |
 | `npm run db:up` / `db:down` | Start / stop local MongoDB |
 | `npm run db:seed` | Recreate demo data and imagery |
 | `npm run setup` | `db:up` followed by `db:seed` |
@@ -243,11 +246,21 @@ Indexes cover the actual access patterns:
 - CORS restricted to `FRONTEND_URL`
 - Invalid ObjectIds, query params, and payloads return a consistent 400 rather than a 500
 
+## Testing
+
+The backend suite runs against a real MongoDB instance through Supertest, so authentication, ownership checks, validation, pagination, text search, favorites, and upload handling are exercised end to end. The frontend suite uses Vitest, jsdom, and React Testing Library.
+
+```bash
+npm run db:up   # tests use mongodb://127.0.0.1:27017/backroom_housing_test
+npm test
+```
+
+CI runs lint, type-checking, both test suites (with a MongoDB service container), and the production build on every push and pull request.
+
 ## Known limitations
 
 This is a portfolio project, not a production service. The next planned steps are:
 
-- Automated tests and CI (Vitest/Supertest + React Testing Library, GitHub Actions)
 - Renter application/inquiry flow and a host inbox
 - Admin moderation console
 - Move uploads to object storage and generate responsive image variants

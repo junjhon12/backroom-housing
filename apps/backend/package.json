@@ -6,6 +6,8 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "start": "node dist/server.js",
     "seed": "ts-node src/scripts/seed.ts",
     "sync-indexes": "ts-node src/scripts/syncIndexes.ts"
@@ -26,8 +28,11 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.3.0",
     "@types/node": "^20.12.7",
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.3.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^4.1.12"
   }
 }
