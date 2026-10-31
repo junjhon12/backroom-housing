@@ -7,7 +7,7 @@ const getAuthToken = (): string | null => {
     try {
       const user = JSON.parse(storedUser);
       return user.token;
-    } catch (e) {
+    } catch {
       return null;
     }
   }

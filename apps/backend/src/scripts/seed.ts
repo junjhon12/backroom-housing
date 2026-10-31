@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Property from '../models/Property';
 import User from '../models/User';
+import { createSeedImages, resetSeedImages } from './seedImages';
 
 // Explicitly define path to .env since this script runs outside the standard server context
 dotenv.config({ path: __dirname + '/../../.env' });
@@ -208,14 +209,24 @@ const runSeed = async (): Promise<void> => {
     await Property.deleteMany({});
     console.log('[Seed] Existing properties cleared.');
 
+    // Regenerate deterministic survey photographs. Only files written by this
+    // script are removed, so user uploads are untouched.
+    resetSeedImages();
+    console.log('[Seed] Previous survey photographs cleared.');
+
     // Saved listings still point at the documents we just removed; reset them
     // so nobody is left with dangling references.
     await User.updateMany({}, { $set: { savedProperties: [] } });
     console.log('[Seed] Saved listings reset.');
 
-    // Insert mock data, owned by the demo host
-    await Property.insertMany(seedProperties.map((property) => ({ ...property, host: host._id })));
-    console.log(`[Seed] ${seedProperties.length} rooms inserted successfully.`);
+    // Insert mock data with a generated gallery, owned by the demo host
+    const listings = seedProperties.map((property, index) => ({
+      ...property,
+      images: createSeedImages(index + 1, property.hazardClass),
+    }));
+    await Property.insertMany(listings.map((property) => ({ ...property, host: host._id })));
+    console.log(`[Seed] ${listings.length} rooms inserted successfully.`);
+    console.log('[Seed] Survey photographs written to apps/backend/uploads.');
 
     process.exit(0);
   } catch (error) {
