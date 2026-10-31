@@ -16,6 +16,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 import EditProperty from "./pages/EditProperty";
 import Favorites from "./pages/Favorites";
+import Applications from "./pages/Applications";
+import Inbox from "./pages/Inbox";
 import NotFound from "./pages/NotFound";
 import { buttonStyles } from "./components/ui";
 
@@ -39,7 +41,10 @@ const Navigation = () => {
 
   if (user) {
     links.push({ to: "/favorites", label: "Saved" });
-    if (user.role === "host" || user.role === "admin") {
+    if (user.role === "renter") {
+      links.push({ to: "/applications", label: "Applications" });
+    } else {
+      links.push({ to: "/inbox", label: "Inbox" });
       links.push({ to: "/dashboard", label: "Console" });
     }
   }
@@ -170,10 +175,12 @@ const App: React.FC = () => {
 
             <Route element={<ProtectedRoute />}>
               <Route path="/favorites" element={<Favorites />} />
+              <Route path="/applications" element={<Applications />} />
             </Route>
             <Route
               element={<ProtectedRoute allowedRoles={["host", "admin"]} />}
             >
+              <Route path="/inbox" element={<Inbox />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/property/new" element={<CreateProperty />} />
               <Route path="/property/edit/:id" element={<EditProperty />} />

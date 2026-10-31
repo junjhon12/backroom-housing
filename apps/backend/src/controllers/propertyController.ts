@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import Property, { IProperty } from '../models/Property';
+import Application from '../models/Application';
 import User from '../models/User';
 import { UPLOADS_DIR } from '../config/paths';
 import { AppError } from '../utils/AppError';
@@ -201,6 +202,10 @@ export const deleteProperty = asyncHandler(
       { savedProperties: property._id },
       { $pull: { savedProperties: property._id } }
     );
+
+    // Applications belong to the unit; leaving them behind would fill the host
+    // inbox with files that can no longer be reviewed or opened.
+    await Application.deleteMany({ property: property._id });
 
     // Remove every uploaded photograph so the disk doesn't accumulate orphans.
     await Promise.all(

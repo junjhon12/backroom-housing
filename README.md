@@ -26,6 +26,13 @@ A full-stack housing platform for the Backrooms — a fictional residential regi
 - Saved-file favorites with optimistic UI and rollback on failure
 - Route guards for authenticated and role-restricted pages, with redirect-back-after-login
 
+**Applications**
+- Renters file an application with a note and optional move-in date from the listing page
+- One application per unit per applicant, enforced by a unique index
+- Applicants track pending, accepted, declined, and withdrawn files from one page
+- Hosts review applications in an inbox and accept or decline them; applicants can withdraw
+- Applications are removed with their listing, and ownership is re-checked on every decision
+
 **Host console**
 - Create, edit, withdraw, and reactivate listings
 - Ownership checks on every mutation (admins may act on any listing)
@@ -41,6 +48,10 @@ A full-stack housing platform for the Backrooms — a fictional residential regi
 | Desktop file view | Mobile directory |
 | --- | --- |
 | ![Property file](docs/screenshots/property-file.png) | ![Mobile directory](docs/screenshots/directory-mobile.png) |
+
+| Applicant file | Host inbox |
+| --- | --- |
+| ![Applications](docs/screenshots/applications.png) | ![Host inbox](docs/screenshots/host-inbox.png) |
 
 ## Tech stack
 
@@ -210,6 +221,11 @@ Paginated collections also include `meta: { page, limit, total, totalPages }`.
 | `POST` | `/api/upload` | Host/Admin | Upload one image (`image` field) |
 | `GET` | `/api/users/favorites` | Authenticated | Saved listings |
 | `POST` | `/api/users/favorites/:propertyId` | Authenticated | Toggle a saved listing |
+| `POST` | `/api/applications` | Authenticated | File an application (`propertyId`, `message`, optional `moveInDate`) |
+| `GET` | `/api/applications/mine` | Authenticated | The caller's applications |
+| `GET` | `/api/applications/received` | Host/Admin | Applications for the host's units |
+| `PATCH` | `/api/applications/:id/status` | Owner/Admin | Accept or decline (`accepted` / `declined`) |
+| `PATCH` | `/api/applications/:id/withdraw` | Applicant | Withdraw a pending or accepted application |
 
 **Query parameters for `GET /api/properties`**
 
@@ -227,12 +243,17 @@ Paginated collections also include `meta: { page, limit, total, totalPages }`.
 
 **Property** — lore-specific address (`level`, `sector`), `title`, `description`, `price`, `hazardClass`, `bedrooms`, `bathrooms`, `squareFeet`, `isAvailable`, `images[]` (max 6, local upload paths only), owning `host`.
 
+**Application** — `property`, `applicant`, denormalised `host`, `message` (max 1,000 characters), optional `moveInDate`, and `status` (`pending` / `accepted` / `declined` / `withdrawn`). A unique `{ property, applicant }` index prevents duplicate filings.
+
 Indexes cover the actual access patterns:
 
 - text index on `title`, `level`, `sector`, `description`
 - `{ isAvailable: 1, createdAt: -1 }` for the default feed and pagination
 - `{ isAvailable: 1, price: 1 }` and `{ isAvailable: 1, bedrooms: 1 }` for independent filters
 - `{ host: 1, createdAt: -1 }` for the host console
+- `{ host: 1, status: 1, createdAt: -1 }` for the host inbox
+- `{ applicant: 1, createdAt: -1 }` for the applicant's history
+- unique `{ property: 1, applicant: 1 }` for one application per unit per person
 
 ## Security decisions
 
@@ -253,7 +274,7 @@ Indexes cover the actual access patterns:
 
 ## Testing
 
-The backend suite runs against a real MongoDB instance through Supertest, so authentication, ownership checks, validation, pagination, text search, favorites, and upload handling are exercised end to end. The frontend suite uses Vitest, jsdom, and React Testing Library.
+The backend suite (65 tests) runs against a real MongoDB instance through Supertest, so authentication, ownership checks, validation, pagination, text search, favorites, applications, and upload handling are exercised end to end. The frontend suite (19 tests) uses Vitest, jsdom, and React Testing Library.
 
 ```bash
 npm run db:up   # tests use mongodb://127.0.0.1:27017/backroom_housing_test
@@ -266,8 +287,8 @@ CI runs lint, type-checking, both test suites (with a MongoDB service container)
 
 This is a portfolio project, not a production service. The next planned steps are:
 
-- Renter application/inquiry flow and a host inbox
 - Admin moderation console
+- Notifications (email or in-app) when an application changes status
 - Move uploads to object storage and generate responsive image variants
 - Refresh-token rotation with httpOnly cookies
 - Sorting and hazard/level filters in the directory

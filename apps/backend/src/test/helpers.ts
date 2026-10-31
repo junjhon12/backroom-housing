@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../app';
+import Application from '../models/Application';
 import Property, { type HazardClass } from '../models/Property';
 import User from '../models/User';
 
@@ -10,8 +11,8 @@ export const connectTestDB = async (): Promise<void> => {
     throw new Error('MONGO_URI_TEST is not set');
   }
   await mongoose.connect(uri);
-  // `$text` queries fail until the schema's text index exists.
-  await Property.init();
+  // `$text` and unique guards only work once the schema indexes exist.
+  await Promise.all([Property.init(), Application.init()]);
 };
 
 export const disconnectTestDB = async (): Promise<void> => {
@@ -20,7 +21,11 @@ export const disconnectTestDB = async (): Promise<void> => {
 };
 
 export const clearTestDB = async (): Promise<void> => {
-  await Promise.all([User.deleteMany({}), Property.deleteMany({})]);
+  await Promise.all([
+    User.deleteMany({}),
+    Property.deleteMany({}),
+    Application.deleteMany({}),
+  ]);
 };
 
 interface TestUser {

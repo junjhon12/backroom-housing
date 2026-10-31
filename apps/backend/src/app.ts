@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { UPLOADS_DIR } from './config/paths';
 import propertyRoutes from './routes/propertyRoutes';
+import applicationRoutes from './routes/applicationRoutes';
 import authRoutes from './routes/authRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import userRoutes from './routes/userRoutes';
@@ -78,6 +79,7 @@ const uploadLimiter = rateLimit({
 app.use('/api', apiLimiter);
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/properties', propertyRoutes);
+app.use('/api/applications', applicationRoutes);
 app.use('/api/upload', uploadLimiter, uploadRoutes);
 app.use('/api/users', userRoutes);
 

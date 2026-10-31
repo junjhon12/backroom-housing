@@ -1,18 +1,5 @@
 import type { Property, ApiResponse, PaginatedResponse, PaginationMeta, PropertyInput } from '../types/property';
-
-// Helper to extract JWT from local storage
-const getAuthToken = (): string | null => {
-  const storedUser = localStorage.getItem('backroom_user');
-  if (storedUser) {
-    try {
-      const user = JSON.parse(storedUser);
-      return user.token;
-    } catch {
-      return null;
-    }
-  }
-  return null;
-};
+import { readAuthToken } from '../lib/authStorage';
 
 export interface PropertyPage {
   properties: Property[];
@@ -80,7 +67,7 @@ export const fetchPropertyById = async (id: string, signal?: AbortSignal): Promi
 };
 
 export const createPropertyListing = async (data: PropertyInput): Promise<Property> => {
-  const token = getAuthToken();
+  const token = readAuthToken();
   
   const response = await fetch('/api/properties', {
     method: 'POST',
@@ -101,7 +88,7 @@ export const createPropertyListing = async (data: PropertyInput): Promise<Proper
 };
 
 export const fetchMyProperties = async (signal?: AbortSignal): Promise<Property[]> => {
-  const token = getAuthToken();
+  const token = readAuthToken();
   const response = await fetch('/api/properties/me', {
     signal,
     headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
@@ -115,7 +102,7 @@ export const fetchMyProperties = async (signal?: AbortSignal): Promise<Property[
 };
 
 export const deletePropertyListing = async (id: string): Promise<void> => {
-  const token = getAuthToken();
+  const token = readAuthToken();
   const response = await fetch(`/api/properties/${id}`, {
     method: 'DELETE',
     headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
@@ -128,7 +115,7 @@ export const deletePropertyListing = async (id: string): Promise<void> => {
 };
 
 export const updatePropertyListing = async (id: string, data: PropertyInput): Promise<Property> => {
-  const token = getAuthToken();
+  const token = readAuthToken();
   
   const response = await fetch(`/api/properties/${id}`, {
     method: 'PUT',
@@ -149,7 +136,7 @@ export const updatePropertyListing = async (id: string, data: PropertyInput): Pr
 };
 
 export const uploadImage = async (file: File): Promise<string> => {
-  const token = getAuthToken();
+  const token = readAuthToken();
   const formData = new FormData();
   formData.append('image', file); // 'image' matches the upload.single('image') backend config
 

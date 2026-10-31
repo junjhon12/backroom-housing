@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import type { Property } from '../types/property';
 import { fetchPropertyById } from '../services/propertyService';
 import { fetchFavorites, toggleFavoriteListing } from '../services/userService';
+import { fetchMyApplications } from '../services/applicationService';
+import { ApplyForm } from '../components/ApplyForm';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ToastProvider';
 import { Badge, Button, buttonStyles, Card, Skeleton, Stamp } from '../components/ui';
@@ -26,6 +28,9 @@ const PropertyDetails: React.FC = () => {
   const [isFavorited, setIsFavorited] = useState<boolean>(false);
   const [isToggling, setIsToggling] = useState<boolean>(false);
 
+  // Application State
+  const [hasApplied, setHasApplied] = useState<boolean>(false);
+
   // Gallery: index into property.images.
   const [activeImage, setActiveImage] = useState<number>(0);
 
@@ -45,13 +50,21 @@ const PropertyDetails: React.FC = () => {
           favoritesPromise = fetchFavorites(controller.signal);
         }
 
-        const [fetchedProperty, userFavorites] = await Promise.all([
+        // Renters also see whether they already have an application on file.
+        const applicationsPromise =
+          user?.role === 'renter'
+            ? fetchMyApplications(controller.signal)
+            : Promise.resolve([]);
+
+        const [fetchedProperty, userFavorites, myApplications] = await Promise.all([
           propertyPromise,
           favoritesPromise,
+          applicationsPromise,
         ]);
 
         setProperty(fetchedProperty);
         setActiveImage(0);
+        setHasApplied(myApplications.some((application) => application.property?._id === id));
 
         // Determine if this property is already in the user's favorites
         if (user && userFavorites.some((fav) => fav._id === id)) {
@@ -244,10 +257,18 @@ const PropertyDetails: React.FC = () => {
                 state={{ from: `/property/${property._id}` }}
                 className={buttonStyles({ variant: 'secondary', className: 'shrink-0' })}
               >
-                Sign in to save
+                Sign in to save or apply
               </Link>
             )}
           </div>
+
+          {user?.role === 'renter' && (property.isAvailable || hasApplied) && (
+            <ApplyForm
+              propertyId={property._id}
+              hasApplied={hasApplied}
+              onSubmitted={() => setHasApplied(true)}
+            />
+          )}
 
           <section className="mt-6" aria-labelledby="field-notes">
             <h2

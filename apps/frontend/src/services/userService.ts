@@ -1,21 +1,8 @@
 import type { Property, ApiResponse } from '../types/property';
-
-// Helper to extract JWT from local storage (mirrors the implementation in propertyService)
-const getAuthToken = (): string | null => {
-  const storedUser = localStorage.getItem('backroom_user');
-  if (storedUser) {
-    try {
-      const user = JSON.parse(storedUser);
-      return user.token;
-    } catch {
-      return null;
-    }
-  }
-  return null;
-};
+import { readAuthToken } from '../lib/authStorage';
 
 export const fetchFavorites = async (signal?: AbortSignal): Promise<Property[]> => {
-  const token = getAuthToken();
+  const token = readAuthToken();
   if (!token) throw new Error('User not authenticated');
 
   const response = await fetch('/api/users/favorites', {
@@ -32,7 +19,7 @@ export const fetchFavorites = async (signal?: AbortSignal): Promise<Property[]> 
 };
 
 export const toggleFavoriteListing = async (propertyId: string): Promise<string[]> => {
-  const token = getAuthToken();
+  const token = readAuthToken();
   if (!token) throw new Error('User not authenticated');
 
   const response = await fetch(`/api/users/favorites/${propertyId}`, {
