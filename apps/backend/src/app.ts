@@ -1,6 +1,9 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import mongoose from 'mongoose';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { UPLOADS_DIR } from './config/paths';
 import propertyRoutes from './routes/propertyRoutes';
@@ -17,6 +20,21 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 // opening a port or sharing the development database connection.
 const app = express();
 
+const isTest = process.env.NODE_ENV === 'test';
+
+if (process.env.NODE_ENV === 'production') {
+  // Required for rate limiting to see the real client IP behind a proxy.
+  app.set('trust proxy', 1);
+}
+
+app.use(
+  helmet({
+    // Listing photographs are intentionally public and may be served from a
+    // different origin in a split frontend/API deployment.
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -24,25 +42,61 @@ app.use(
   })
 );
 
-app.use(express.json());
+// A listing payload is small; refusing oversized bodies early limits the work
+// an unauthenticated client can make the server do.
+app.use(express.json({ limit: '100kb' }));
 
+const rateLimitMessage = {
+  success: false,
+  error: 'Too many requests. Please try again later.',
+};
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: isTest ? 100_000 : 300,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: rateLimitMessage,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: isTest ? 100_000 : 20,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: rateLimitMessage,
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: isTest ? 100_000 : 60,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: rateLimitMessage,
+});
+
+app.use('/api', apiLimiter);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/properties', propertyRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/upload', uploadRoutes);
+app.use('/api/upload', uploadLimiter, uploadRoutes);
 app.use('/api/users', userRoutes);
 
 // Expose the 'uploads' directory to the public
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 interface HealthCheckResponse {
-  status: string;
+  status: 'operational' | 'degraded';
+  database: 'connected' | 'disconnected';
   timestamp: string;
   service: string;
 }
 
 app.get('/api/health', (req: Request, res: Response<HealthCheckResponse>): void => {
-  res.status(200).json({
-    status: 'operational',
+  const connected = mongoose.connection.readyState === 1;
+
+  res.status(connected ? 200 : 503).json({
+    status: connected ? 'operational' : 'degraded',
+    database: connected ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString(),
     service: 'Backroom Housing API',
   });

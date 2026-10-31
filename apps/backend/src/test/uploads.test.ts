@@ -105,13 +105,46 @@ describe('POST /api/upload', () => {
 });
 
 describe('GET /api/health', () => {
-  it('reports the service as operational', async () => {
+  it('reports the service and database as operational', async () => {
     const response = await request(app).get('/api/health');
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       status: 'operational',
+      database: 'connected',
       service: 'Backroom Housing API',
     });
+  });
+});
+
+describe('security headers', () => {
+  it('sets hardening headers and hides the framework name', async () => {
+    const response = await request(app).get('/api/health');
+
+    expect(response.headers['x-content-type-options']).toBe('nosniff');
+    expect(response.headers['x-frame-options']).toBe('SAMEORIGIN');
+    expect(response.headers['x-powered-by']).toBeUndefined();
+  });
+});
+
+describe('request body limits', () => {
+  it('rejects an oversized JSON payload with 413', async () => {
+    const response = await request(app)
+      .post('/api/auth/login')
+      .set('Content-Type', 'application/json')
+      .send(JSON.stringify({ email: 'a@b.test', password: 'x'.repeat(200_000) }));
+
+    expect(response.status).toBe(413);
+    expect(response.body.error).toMatch(/too large/i);
+  });
+
+  it('rejects malformed JSON with 400', async () => {
+    const response = await request(app)
+      .post('/api/auth/login')
+      .set('Content-Type', 'application/json')
+      .send('{"email":');
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toMatch(/valid JSON/i);
   });
 });
 

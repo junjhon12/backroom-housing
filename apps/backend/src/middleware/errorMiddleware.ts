@@ -15,6 +15,21 @@ const isDuplicateKeyError = (error: unknown): error is { keyPattern?: Record<str
   'code' in error &&
   (error as { code?: unknown }).code === 11000;
 
+/**
+ * body-parser (oversized JSON, malformed JSON) and a few other Express
+ * middlewares attach a 4xx `statusCode` to the error. Surface those as client
+ * errors instead of turning every one of them into a 500.
+ */
+const isClientHttpError = (
+  error: unknown
+): error is { statusCode: number; message?: string; type?: string } => {
+  if (typeof error !== 'object' || error === null || !('statusCode' in error)) return false;
+  const statusCode = (error as { statusCode?: unknown }).statusCode;
+  return (
+    typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500
+  );
+};
+
 const maxMegabytes = Math.round(MAX_IMAGE_BYTES / (1024 * 1024));
 
 /**
@@ -64,6 +79,14 @@ export const errorHandler = (
       'email' in (err.keyPattern ?? {})
         ? 'An account with that email already exists'
         : 'A record with that value already exists';
+  } else if (isClientHttpError(err)) {
+    statusCode = err.statusCode;
+    message =
+      err.type === 'entity.too.large'
+        ? 'Request body is too large'
+        : err.type === 'entity.parse.failed'
+          ? 'Request body must be valid JSON'
+          : err.message || 'Bad request';
   }
 
   // Client mistakes are expected; server faults are not and need the detail.

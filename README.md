@@ -51,7 +51,7 @@ A full-stack housing platform for the Backrooms — a fictional residential regi
 | Database | MongoDB 7 (Docker for local development) |
 | Auth | JWT bearer tokens, bcrypt password hashing |
 | Uploads | Multer disk storage + magic-byte validation |
-| Tooling | npm workspaces, ts-node-dev, Oxlint |
+| Tooling | npm workspaces, tsx, Oxlint, Vitest |
 
 ## Architecture
 
@@ -134,7 +134,8 @@ cp apps/backend/.env.example apps/backend/.env
 | `PORT` | API port | `5000` |
 | `FRONTEND_URL` | Allowed CORS origin | `http://localhost:5173` |
 | `MONGO_URI` | MongoDB connection string | `mongodb://127.0.0.1:27017/backroom_housing` |
-| `JWT_SECRET` | Token signing secret — **change this** | _(required)_ |
+| `JWT_SECRET` | Token signing secret — **change this** (32+ characters in production) | _(required)_ |
+| `NODE_ENV` | `production` enables the proxy-aware rate limiter and secret-length check | `development` |
 
 ### 3. Start MongoDB and seed the registry
 
@@ -244,6 +245,10 @@ Indexes cover the actual access patterns:
 - Uploads check extension and MIME type, then verify PNG/JPEG/WebP magic bytes before keeping the file
 - Uploaded filenames are randomised; listings may only reference `/uploads/<file>` paths
 - CORS restricted to `FRONTEND_URL`
+- Helmet security headers; the framework banner is removed
+- Rate limits on the whole API, plus stricter limits on authentication and uploads
+- JSON bodies capped at 100 KB; malformed or oversized bodies return 400/413
+- Required environment variables are validated at boot instead of failing on first use
 - Invalid ObjectIds, query params, and payloads return a consistent 400 rather than a 500
 
 ## Testing
@@ -265,7 +270,6 @@ This is a portfolio project, not a production service. The next planned steps ar
 - Admin moderation console
 - Move uploads to object storage and generate responsive image variants
 - Refresh-token rotation with httpOnly cookies
-- Rate limiting and Helmet on the API
 - Sorting and hazard/level filters in the directory
 
 ## License
