@@ -1,0 +1,34 @@
+# Render blueprint for the Backroom Housing API.
+#
+# The frontend is deployed separately on Vercel and proxies /api and /uploads
+# to this service. Create the service with: New > Blueprint > connect this repo.
+#
+# Secrets are marked `sync: false`, so Render prompts for them on first deploy
+# instead of storing them in the repository.
+
+services:
+  - type: web
+    name: backroom-housing-api
+    runtime: node
+    plan: free
+    region: oregon
+    branch: master
+    autoDeploy: true
+    healthCheckPath: /api/health
+    buildCommand: npm ci && npm run build -w @backroom-housing/backend
+    startCommand: npm run start -w @backroom-housing/backend
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      # MongoDB Atlas connection string, e.g.
+      # mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/backroom_housing
+      - key: MONGO_URI
+        sync: false
+      # Render generates a 64-character secret on first deploy.
+      - key: JWT_SECRET
+        generateValue: true
+      # The Vercel production origin, e.g. https://backroom-housing.vercel.app
+      - key: FRONTEND_URL
+        sync: false

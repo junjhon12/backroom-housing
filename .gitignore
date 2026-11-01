@@ -13,3 +13,6 @@ Thumbs.db
 # Local user uploads (keep the directory itself)
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep
+# Seeded survey photography ships with the repo so a fresh deploy still has
+# gallery images on an ephemeral filesystem. Real uploads stay ignored.
+!apps/backend/uploads/seed-*.svg

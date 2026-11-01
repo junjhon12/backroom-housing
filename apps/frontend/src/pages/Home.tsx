@@ -110,9 +110,7 @@ const Home: React.FC = () => {
 
           <h1 className="mt-4 font-display text-[3.5rem] uppercase leading-[0.82] sm:text-7xl md:text-8xl">
             The
-            <br />
-            Backrooms
-            <br />
+            <div className='py-5'>Backrooms</div>
             are open.
           </h1>
 
@@ -152,7 +150,7 @@ const Home: React.FC = () => {
 
       {/* Atmosphere band: sets the world without competing with the headline */}
       <figure className="relative -mx-4 border-y border-ink sm:mx-0 sm:border">
-        <div className="aspect-[16/9] w-full sm:aspect-[21/9]">
+        <div className="aspect-video w-full sm:aspect-21/9">
           <img
             src="/scenes/corridor.svg"
             alt="A wallpaper corridor on Level 0 receding toward a single dark doorway"
