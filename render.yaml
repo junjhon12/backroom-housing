@@ -15,15 +15,13 @@ services:
     branch: master
     autoDeploy: true
     healthCheckPath: /api/health
-    # `--include=dev` is required: NODE_ENV=production makes npm omit
-    # devDependencies by default, and the TypeScript build needs @types/*.
     buildCommand: npm ci --include=dev && npm run build -w @backroom-housing/backend
-    startCommand: npm run start -w @backroom-housing/backend
+    # NODE_ENV is set here rather than as a service-wide env var so it applies to
+    # the running server only, never to the dependency install.
+    startCommand: NODE_ENV=production npm run start -w @backroom-housing/backend
     envVars:
       - key: NODE_VERSION
         value: "22"
-      - key: NODE_ENV
-        value: production
       # MongoDB Atlas connection string, e.g.
       # mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/backroom_housing
       - key: MONGO_URI
