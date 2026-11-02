@@ -1,27 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "backend": {
-      "root": "apps/backend",
-      "framework": "express"
-    },
-    "frontend": {
-      "root": "apps/frontend",
-      "framework": "vite"
-    }
-  },
+  "framework": "vite",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build -w @backroom-housing/frontend",
+  "outputDirectory": "apps/frontend/dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": {
-        "service": "backend"
-      }
+      "destination": "https://backroom-housing-api.onrender.com/api/$1"
+    },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "https://backroom-housing-api.onrender.com/uploads/$1"
     },
     {
       "source": "/(.*)",
-      "destination": {
-        "service": "frontend"
-      }
+      "destination": "/index.html"
     }
   ]
 }
