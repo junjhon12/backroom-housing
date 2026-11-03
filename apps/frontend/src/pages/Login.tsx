@@ -24,13 +24,13 @@ const Login: React.FC = () => {
     }
   }, [user, navigate, redirectTo]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Centralized login executor
+  const executeLogin = async (loginEmail: string, loginPass: string) => {
     setError(null);
     setIsLoading(true);
 
     try {
-      const data = await loginUser({ email, password });
+      const data = await loginUser({ email: loginEmail, password: loginPass });
       login(data); // Update global context
       navigate(redirectTo, { replace: true });
     } catch (err) {
@@ -38,6 +38,18 @@ const Login: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await executeLogin(email, password);
+  };
+
+  const handleDemoLogin = (role: 'host' | 'renter') => {
+    // Replace with the actual seeded demo credentials for your database
+    const demoEmail = role === 'host' ? 'host@demo.com' : 'renter@demo.com';
+    const demoPassword = 'password123'; 
+    executeLogin(demoEmail, demoPassword);
   };
 
   return (
@@ -84,7 +96,32 @@ const Login: React.FC = () => {
         </Button>
       </form>
 
-      <p className="mt-6 border-t border-ink/20 pt-4 text-xs text-ink/70">
+      <div className="relative mt-8 flex items-center py-2">
+        <div className="flex-grow border-t border-ink/20"></div>
+        <span className="mx-4 shrink-0 text-[10px] uppercase tracking-[0.2em] text-ink/50">Or demo access</span>
+        <div className="flex-grow border-t border-ink/20"></div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-2 gap-4">
+        <Button 
+          type="button" 
+          onClick={() => handleDemoLogin('host')} 
+          disabled={isLoading} 
+          className="w-full bg-ink/10 text-ink hover:bg-ink/20 border-transparent"
+        >
+          Try as Host
+        </Button>
+        <Button 
+          type="button" 
+          onClick={() => handleDemoLogin('renter')} 
+          disabled={isLoading} 
+          className="w-full bg-ink/10 text-ink hover:bg-ink/20 border-transparent"
+        >
+          Try as Renter
+        </Button>
+      </div>
+
+      <p className="mt-8 border-t border-ink/20 pt-4 text-xs text-ink/70">
         No file on record?{' '}
         <Link to="/register" className="underline underline-offset-4 hover:text-signal">
           Apply for residency
