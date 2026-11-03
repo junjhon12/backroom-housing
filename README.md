@@ -4,7 +4,8 @@
 
 A full-stack housing platform for the Backrooms — a fictional residential registry where renters browse surveyed units, save files, and hosts manage listings. Built as a production-shaped MERN application: typed end to end, authenticated, indexed, validated, and fully seeded.
 
-> **Live demo:** _add deployment URL here_
+> **Live demo:** https://backroom-housing-psi.vercel.app/
+“first load may take ~30s”
 >
 > **Demo host account:** `host@backroom.local` / `password123`
 
