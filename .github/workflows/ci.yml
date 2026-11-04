@@ -102,6 +102,8 @@ jobs:
         with:
           name: reports-lighthouse
           path: .lighthouseci
+          # .lighthouseci is a dot-directory; upload-artifact@v4 skips hidden files by default
+          include-hidden-files: true
           if-no-files-found: warn
 
   # Publishes shields.io endpoint JSON to an orphan `badges` branch so the README
