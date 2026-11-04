@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { lazy, Suspense, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -19,6 +19,9 @@ import Favorites from "./pages/Favorites";
 import Applications from "./pages/Applications";
 import Inbox from "./pages/Inbox";
 import NotFound from "./pages/NotFound";
+
+// Leaflet is heavy and only the map needs it, so it ships as its own chunk.
+const MapPage = lazy(() => import("./pages/MapPage"));
 import { buttonStyles } from "./components/ui";
 
 const NAV_LINK =
@@ -37,7 +40,10 @@ const Navigation = () => {
 
   const closeMenu = () => setMenuOpen(false);
 
-  const links: Array<{ to: string; label: string }> = [{ to: "/", label: "Directory" }];
+  const links: Array<{ to: string; label: string }> = [
+    { to: "/", label: "Directory" },
+    { to: "/map", label: "Map" },
+  ];
 
   if (user) {
     links.push({ to: "/favorites", label: "Saved" });
@@ -167,8 +173,16 @@ const App: React.FC = () => {
       <div className="flex min-h-screen flex-col bg-paper">
         <Navigation />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10">
+          <Suspense
+            fallback={
+              <p role="status" className="py-16 text-center text-[10px] uppercase tracking-[0.2em] text-ink/60">
+                Unfolding chart
+              </p>
+            }
+          >
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/map" element={<MapPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/property/:id" element={<PropertyDetails />} />
@@ -188,6 +202,7 @@ const App: React.FC = () => {
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </main>
 
         <footer className="border-t border-ink bg-ink text-cream">
