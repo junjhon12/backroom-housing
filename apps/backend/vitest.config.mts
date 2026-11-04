@@ -16,5 +16,14 @@ export default defineConfig({
     },
     testTimeout: 15000,
     hookTimeout: 20000,
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+      // Tests, one-off seed/index scripts, the process entrypoint and type-only
+      // modules are not application logic, so they stay out of the percentage.
+      exclude: ['src/**/*.test.ts', 'src/test/**', 'src/scripts/**', 'src/server.ts', 'src/types/**'],
+      reporter: ['text-summary', 'json-summary', 'lcov'],
+      reportsDirectory: './coverage',
+    },
   },
 });

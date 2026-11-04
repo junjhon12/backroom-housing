@@ -101,9 +101,9 @@ const Login: React.FC = () => {
       </form>
 
       <div className="relative mt-8 flex items-center py-2">
-        <div className="flex-grow border-t border-ink/20"></div>
+        <div className="grow border-t border-ink/20"></div>
         <span className="mx-4 shrink-0 text-[10px] uppercase tracking-[0.2em] text-ink/50">Or demo access</span>
-        <div className="flex-grow border-t border-ink/20"></div>
+        <div className="grow border-t border-ink/20"></div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4">
