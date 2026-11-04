@@ -25,6 +25,7 @@ A full-stack housing platform for the Backrooms — a fictional residential regi
 - Listing gallery with cover image and up to six photographs
 - Hazard classification (`safe` / `caution` / `hostile`) surfaced consistently across cards, detail pages, and the host console
 - Designed loading skeletons, empty states, error states, and a 404 route
+- **Level map** (`/map`): a Leaflet survey chart on a flat `CRS.Simple` plane. Each Backrooms level is a region, listings are pinned by level and sector with a deterministic layout, pins are hazard-coded (colour plus hatching), and a keyboard-accessible file list mirrors the chart. Leaflet is code-split so it only loads on this route
 
 **Accounts**
 - Register and sign in with hashed passwords (bcrypt) and JWT sessions

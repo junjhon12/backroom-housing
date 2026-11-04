@@ -1,0 +1,75 @@
+/* Leaflet surface restyled as a survey chart: wallpaper stock, hard ink lines. */
+.level-map {
+  background-color: #c7ba80;
+  background-image:
+    linear-gradient(rgba(20, 20, 15, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 20, 15, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  font-family: var(--font-mono);
+}
+
+.level-map .leaflet-control-zoom a {
+  border-radius: 0;
+  border: 1px solid #14140f;
+  background: #f4efd9;
+  color: #14140f;
+}
+
+.level-map .leaflet-control-attribution {
+  background: rgba(244, 239, 217, 0.85);
+  font-size: 9px;
+}
+
+.level-label {
+  pointer-events: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: #14140f;
+}
+
+.level-label__key {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.level-label__name {
+  display: block;
+  margin-top: 3px;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  opacity: 0.65;
+}
+
+.level-pin {
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #14140f;
+  box-shadow: 2px 2px 0 #14140f;
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+
+.level-pin--hostile {
+  /* Hazard hatching: reads as "danger" without relying on colour alone. */
+  background-image: repeating-linear-gradient(45deg, transparent 0 3px, rgba(20, 20, 15, 0.45) 3px 5px);
+}
+
+.level-pin--selected {
+  transform: scale(1.45);
+  outline: 2px solid #14140f;
+  outline-offset: 2px;
+}
+
+.level-pin:focus-visible {
+  outline: 2px solid #14140f;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .level-pin {
+    transition: none;
+  }
+}
