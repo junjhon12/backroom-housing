@@ -23,3 +23,7 @@ test-results.json
 .lighthouseci/
 reports/
 badges-out/
+
+# Playwright output
+playwright-report/
+test-results/
