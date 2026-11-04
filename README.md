@@ -1,11 +1,16 @@
 # Backroom Housing Registry
 
 [![CI](https://github.com/junjhon12/backroom-housing/actions/workflows/ci.yml/badge.svg)](https://github.com/junjhon12/backroom-housing/actions/workflows/ci.yml)
+[![Deploy status](https://github.com/junjhon12/backroom-housing/actions/workflows/deploy-status.yml/badge.svg)](https://github.com/junjhon12/backroom-housing/actions/workflows/deploy-status.yml)
+[![Frontend on Vercel](https://img.shields.io/website?url=https%3A%2F%2Fbackroom-housing-psi.vercel.app&up_message=online&down_message=offline&label=Vercel)](https://backroom-housing-psi.vercel.app)
+[![Tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjunjhon12/backroom-housing%2Fbadges%2Ftests.json)](https://github.com/junjhon12/backroom-housing/actions/workflows/ci.yml)
+[![API tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjunjhon12/backroom-housing%2Fbadges%2Fapi-tests.json)](https://github.com/junjhon12/backroom-housing/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjunjhon12/backroom-housing%2Fbadges%2Fcoverage.json)](https://github.com/junjhon12/backroom-housing/actions/workflows/ci.yml)
+[![Lighthouse](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjunjhon12/backroom-housing%2Fbadges%2Flighthouse.json)](https://github.com/junjhon12/backroom-housing/actions/workflows/ci.yml)
 
 A full-stack housing platform for the Backrooms — a fictional residential registry where renters browse surveyed units, save files, and hosts manage listings. Built as a production-shaped MERN application: typed end to end, authenticated, indexed, validated, and fully seeded.
 
-> **Live demo:** https://backroom-housing-psi.vercel.app/
-“first load may take ~30s”
+> **Live demo:** https://backroom-housing-psi.vercel.app/ (the API runs on Render's free tier, so the first load after idle can take ~30s)
 >
 > **Demo host account:** `host@backroom.local` / `password123`
 
@@ -287,7 +292,19 @@ npm run db:up   # tests use mongodb://127.0.0.1:27017/backroom_housing_test
 npm test
 ```
 
-CI runs lint, type-checking, both test suites (with a MongoDB service container), and the production build on every push and pull request.
+### Continuous integration and quality gates
+
+On every push and pull request, GitHub Actions runs:
+
+- **CI** — lint, type-checking, both test suites with V8 coverage (backend against a MongoDB service container), and the production build.
+- **Lighthouse CI** — audits the production build for performance, accessibility, best practices and SEO (config in `lighthouserc.json`; reports are attached to each run).
+- **Deploy status** — after each deploy, on a six-hourly schedule, and on demand, checks that the Vercel frontend responds and that `/api/health` (proxied through Vercel to the Render API and MongoDB Atlas) reports `operational`.
+
+The badges at the top of this README are generated from those runs: on each merge to the default branch, `scripts/make-badges.mjs` turns the test, coverage and Lighthouse reports into shields.io endpoint files on an orphan `badges` branch, so they always reflect the latest real numbers.
+
+```bash
+npm run test:coverage   # run both suites with V8 coverage
+```
 
 ## Known limitations
 

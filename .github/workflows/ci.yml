@@ -8,7 +8,7 @@ on:
 
 jobs:
   verify:
-    name: Lint, type-check, test, build
+    name: Lint, type-check, test + coverage, build
     runs-on: ubuntu-latest
 
     services:
@@ -45,8 +45,105 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
-      - name: Test
-        run: npm test
+      - name: Test with coverage
+        run: npm run test:ci
+
+      - name: Collect reports
+        if: always()
+        run: |
+          for app in backend frontend; do
+            mkdir -p "reports/$app"
+            cp "apps/$app/test-results.json" "apps/$app/coverage/coverage-summary.json" "reports/$app/" 2>/dev/null || true
+          done
+
+      - name: Quality summary
+        if: always()
+        run: node scripts/make-badges.mjs reports >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-tests
+          path: reports
+          if-no-files-found: warn
 
       - name: Build
         run: npm run build
+
+  lighthouse:
+    name: Lighthouse audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build -w @backroom-housing/frontend
+
+      # Audits the production build served by `vite preview` (see lighthouserc.json).
+      # Assertions are warnings for now; tighten them to "error" once scores are stable.
+      - name: Run Lighthouse CI
+        run: npx --yes @lhci/cli@0.15.1 autorun
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-lighthouse
+          path: .lighthouseci
+          if-no-files-found: warn
+
+  # Publishes shields.io endpoint JSON to an orphan `badges` branch so the README
+  # badges show real numbers without a third-party service or any secrets.
+  badges:
+    name: Publish badges
+    if: github.event_name == 'push' && (github.ref_name == 'master' || github.ref_name == 'main')
+    needs: [verify, lighthouse]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download test and coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: reports-tests
+          path: reports
+
+      - name: Download Lighthouse report
+        uses: actions/download-artifact@v4
+        with:
+          name: reports-lighthouse
+          path: reports/lighthouse
+
+      - name: Generate badge JSON
+        run: node scripts/make-badges.mjs reports badges-out >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Push to badges branch
+        working-directory: badges-out
+        run: |
+          git init -b badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: update badges for ${GITHUB_SHA::7}"
+          git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" badges

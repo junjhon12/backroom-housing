@@ -1,0 +1,48 @@
+name: Deploy status
+
+# Verifies the live deployment end to end: the Vercel frontend, then the Render
+# API and its MongoDB connection through Vercel's /api rewrite. Runs after each
+# push, when Vercel reports a successful deployment, every six hours, and on demand.
+on:
+  push:
+    branches: [master, main]
+  deployment_status:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+env:
+  SITE_URL: https://backroom-housing-psi.vercel.app
+
+jobs:
+  check:
+    name: Vercel + Render health
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Frontend responds (Vercel)
+        run: |
+          curl --fail --silent --show-error --location \
+            --retry 5 --retry-delay 10 --retry-all-errors --max-time 30 \
+            --output /dev/null "$SITE_URL/"
+          echo "Frontend OK"
+
+      # Render's free tier sleeps when idle, so the first request can take ~30-60s.
+      - name: API and database healthy (Render + MongoDB Atlas)
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8; do
+            code=$(curl --silent --location --max-time 90 --output health.json --write-out '%{http_code}' "$SITE_URL/api/health" || true)
+            echo "Attempt $attempt: HTTP $code"
+            if [ "$code" = "200" ] && grep -q '"operational"' health.json; then
+              cat health.json
+              echo
+              echo "API OK"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "API health check failed"
+          cat health.json 2>/dev/null || true
+          exit 1
