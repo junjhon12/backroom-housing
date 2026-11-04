@@ -69,28 +69,33 @@ A full-stack housing platform for the Backrooms — a fictional residential regi
 
 ```mermaid
 flowchart LR
-    subgraph Client["React SPA (Vite)"]
-        UI[Pages & components]
-        CTX[Auth context]
-        SVC[Service layer]
+    User([Browser])
+
+    subgraph Vercel["Vercel (static hosting + rewrites)"]
+        SPA["React SPA (Vite)"]
     end
 
-    subgraph API["Express API"]
-        R[Routes]
-        MW[Auth / upload middleware]
-        C[Controllers]
-        M[Mongoose models]
+    subgraph Render["Render (web service)"]
+        API["Express API<br/>auth, validation, rate limits"]
+        FS[("Uploads<br/>/uploads")]
     end
 
-    DB[(MongoDB 7)]
-    FS[(Local uploads)]
+    DB[("MongoDB Atlas<br/>text + compound indexes")]
 
-    UI --> CTX --> SVC
-    SVC -->|JSON / multipart| R
-    R --> MW --> C --> M --> DB
-    C --> FS
-    R -->|/uploads| FS
+    User -->|HTML / JS| SPA
+    SPA -->|"/api/* rewrite"| API
+    SPA -->|"/uploads/* rewrite"| FS
+    API -->|Mongoose| DB
+    API -->|magic-byte checked files| FS
 ```
+
+The SPA is served by Vercel, which rewrites `/api/*` and `/uploads/*` to the Render service (see `vercel.json`). That keeps the browser on a single origin, so the browser only ever talks to one origin in production. The API on Render talks to MongoDB Atlas; local development swaps Atlas for the Docker Compose instance.
+
+## Decisions
+
+- **MongoDB text index instead of regex or a search service.** Listings are searched by keyword across title, level, sector and description. A text index gives tokenised, stemmed, relevance-ranked matching and stays index-backed, whereas `$regex` over four fields scans the collection. A separate engine (Elasticsearch, Atlas Search) would add infrastructure that this data volume does not justify. The trade-off is no fuzzy or typo-tolerant matching, which is the point at which I would move to Atlas Search.
+- **Optimistic UI for favorites and deletes.** Saving a listing flips the UI immediately and rolls back with an error toast if the request fails; a `isToggling` guard prevents double submits. The action is cheap, idempotent and rarely fails, so waiting on a round trip would make the app feel slow for no safety benefit. It is deliberately not used for applications or other state where a false success would mislead the user.
+- **Magic-byte verification for uploads.** The client-supplied extension and MIME type are trivially spoofed, so the server also reads the first bytes of each file and accepts only real JPEG, PNG and WebP signatures, alongside a 5 MB cap, and randomised filenames. The check returns `false` rather than throwing, so an unreadable file can never cause an unhandled rejection. Files are served as static images only, never executed.
 
 ### Repository layout
 
