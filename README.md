@@ -293,11 +293,22 @@ npm run db:up   # tests use mongodb://127.0.0.1:27017/backroom_housing_test
 npm test
 ```
 
+An end-to-end suite (Playwright, Chromium) covers the main flow in a real browser against the real API: a renter registers, searches the directory, saves a unit and applies; the host accepts the application from the inbox; the renter then sees the decision. It also checks guest search, the sign-in redirect, a rejected password and the level map. Playwright starts the API and the Vite dev server itself and seeds a separate `backroom_housing_e2e` database, so it never touches development data.
+
+```bash
+npm run db:up                          # MongoDB must be running
+npx playwright install chromium        # first run only
+npm run test:e2e                       # or test:e2e:ui for the interactive runner
+```
+
+Stop `npm run dev` first: the suite needs ports 5000 and 5173 to itself.
+
 ### Continuous integration and quality gates
 
 On every push and pull request, GitHub Actions runs:
 
 - **CI** — lint, type-checking, both test suites with V8 coverage (backend against a MongoDB service container), and the production build.
+- **Playwright end-to-end** — the main renter-to-host flow in Chromium against the real API and a MongoDB service container (config in `playwright.config.ts`, specs in `e2e/`). The HTML report, with traces and screenshots for any failure, is attached to each run.
 - **Lighthouse CI** — audits the production build for performance, accessibility, best practices and SEO (config in `lighthouserc.json`; reports are attached to each run).
 - **Deploy status** — after each deploy, on a six-hourly schedule, and on demand, checks that the Vercel frontend responds and that `/api/health` (proxied through Vercel to the Render API and MongoDB Atlas) reports `operational`.
 

@@ -15,9 +15,12 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:seed": "npm run seed -w @backroom-housing/backend",
-    "setup": "npm run db:up && npm run db:seed"
+    "setup": "npm run db:up && npm run db:seed",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "concurrently": "^8.2.2"
   }
 }
