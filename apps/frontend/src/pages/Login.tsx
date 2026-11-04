@@ -4,6 +4,12 @@ import { loginUser } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import { Button, Card, Field, Input } from '../components/ui';
 
+// Seeded by apps/backend/src/scripts/seed.ts (npm run db:seed).
+const DEMO_ACCOUNTS = {
+  host: { email: 'host@backroom.local', password: 'password123' },
+  renter: { email: 'renter@backroom.local', password: 'password123' },
+} as const;
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -46,10 +52,8 @@ const Login: React.FC = () => {
   };
 
   const handleDemoLogin = (role: 'host' | 'renter') => {
-    // Replace with the actual seeded demo credentials for your database
-    const demoEmail = role === 'host' ? 'host@demo.com' : 'renter@demo.com';
-    const demoPassword = 'password123'; 
-    executeLogin(demoEmail, demoPassword);
+    const { email, password } = DEMO_ACCOUNTS[role];
+    void executeLogin(email, password);
   };
 
   return (

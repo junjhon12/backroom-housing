@@ -9,12 +9,10 @@ dotenv.config({ path: __dirname + '/../../.env' });
 
 // Listings require a host, so the seed needs a user to own them. Created through
 // the model (not an upsert) so the password hashing hook runs.
-const SEED_HOST = {
-  name: 'Registry Demo Host',
-  email: 'host@backroom.local',
-  password: 'password123',
-  role: 'host' as const,
-};
+const DEMO_USERS = [
+  { name: 'Registry Demo Host', email: 'host@backroom.local', password: 'password123', role: 'host' as const },
+  { name: 'Registry Demo Renter', email: 'renter@backroom.local', password: 'password123', role: 'renter' as const },
+];
 
 const seedProperties = [
   {
@@ -197,13 +195,18 @@ const runSeed = async (): Promise<void> => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('[Seed] Database connected successfully.');
 
-    let host = await User.findOne({ email: SEED_HOST.email });
-    if (!host) {
-      host = await User.create(SEED_HOST);
-      console.log(`[Seed] Demo host created: ${host.email}`);
-    } else {
-      console.log(`[Seed] Reusing demo host: ${host.email}`);
+    const demoUsers = [];
+    for (const demo of DEMO_USERS) {
+      let user = await User.findOne({ email: demo.email });
+      if (!user) {
+        user = await User.create(demo);
+        console.log(`[Seed] Demo ${demo.role} created: ${user.email}`);
+      } else {
+        console.log(`[Seed] Reusing demo ${demo.role}: ${user.email}`);
+      }
+      demoUsers.push(user);
     }
+    const host = demoUsers[0];
 
     // Idempotent operation: Clear existing data before inserting
     await Property.deleteMany({});

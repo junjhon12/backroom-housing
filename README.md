@@ -177,7 +177,7 @@ npm run dev
 | Role | Email | Password |
 | --- | --- | --- |
 | Host | `host@backroom.local` | `password123` |
-| Renter | register a new account | — |
+| Renter | `renter@backroom.local` | `password123` |
 
 Sign in as the host to see the **Console** navigation entry, create listings, and manage uploads.
 
